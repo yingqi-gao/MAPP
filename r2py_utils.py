@@ -85,7 +85,7 @@ def get_bw(obs_at_t):
 
     # Return
     return bw_at_t
-print(get_bw([1, 2, 3, 4, 5]))
+
 
 # Estimate density
 def density_est(train_hist, train_bws, test_obs_at_t, lower, upper, grid_size = 1024, method = "MLE", repeated = True):
@@ -93,13 +93,13 @@ def density_est(train_hist, train_bws, test_obs_at_t, lower, upper, grid_size = 
     Estimates density at round t.
 
     Parameters:
-    - train_hist (list of num *lists*): Training history, i.e., stored training observations. Each element is a numeric *list* storing training observations at round t.
-    - train_bws (num *list*): Bandwidths selected at each round for kernel density estimation.
-    - test_obs_at_t (num *list*): Test observations received at round t, i.e., observations for estimating current density.
-    - lower (*float*): Lower support of all densities.
-    - upper (*float*): Upper support of all densities.
-    - grid_size (int): The number of grid points to generate for evaluating estimated density.
-    - method (*str*): A string specifying the method to use for calculating the estimated parameters (*"MLE", "MAP", "BLUP"*).
+    - train_hist (list of num lists): Training history, i.e., stored training observations. Each element is a numeric list storing training observations at round t.
+    - train_bws (num list): Bandwidths selected at each round for kernel density estimation.
+    - test_obs_at_t (num list): Test observations received at round t, i.e., observations for estimating current density.
+    - lower (float): Lower support of all densities.
+    - upper (float): Upper support of all densities.
+    - grid_size (int): The number of grid points to generate for evaluating estimated density (default: 1024).
+    - method (str): A string specifying the method to use for calculating the estimated parameters ("MLE", "MAP", "BLUP", default: "MLE").
     - repeated (bool): Whether to use historcial data for density estimation (default: True). 
 
     Return:
@@ -110,13 +110,12 @@ def density_est(train_hist, train_bws, test_obs_at_t, lower, upper, grid_size = 
     '''
     # Step 1: Convert all inputs to R objects.
     params = locals()
-    del params["repeated"]
-    params = dict((key, py2rlist(value)) for key, value in params.items())
-
+    del params["method"], params["repeated"]
+    for key in params.keys():
+        params[key] = py2rlist(params[key])
 
     # Step 2: Convert the method parameter to the correct string.
-    params["method"] = "FPCA_" + params["method"]
-
+    params["method"] = "FPCA_" + method
 
     # Step 3: Run the density estimation function in R.
     if repeated:
@@ -130,7 +129,6 @@ def density_est(train_hist, train_bws, test_obs_at_t, lower, upper, grid_size = 
     else:
         ## Use the kernel density estimation method with no historical data. 
         est_cdf_r = robjects.r["kde_r"](params["test_obs_at_t"], params["lower"], params["upper"])
-
 
     # Step 4: Convert R outputs to Python objects
     def est_cdf(x):
