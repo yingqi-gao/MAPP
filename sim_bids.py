@@ -102,6 +102,8 @@ def simulate_bids_history(num_rounds = 200,
     - a list (history) of ideal revenues,
     - a list (history) of bandwidths for kernel density estimation,
     - an optional list (history) of upper bounds,
+    - an optional list (history) of training bids bounds,
+    - an optional list (history) of training bandwidths bounds,
     in each round in the repeated auctions.
     """
     # Step 1: Create empty lists for storage.
@@ -157,7 +159,7 @@ def simulate_bids_history(num_rounds = 200,
     
     history = {"bids": bids_history,
                "num_bidders": num_bidders_history,
-               "bidders_values": bidders_value_dist_history,
+               "bidders_value_dists": bidders_value_dist_history,
                "ideal_prices": ideal_price_history, 
                "ideal_revenues": ideal_revenue_history,
                "kde_bws": kde_bw_history}
