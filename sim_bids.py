@@ -198,10 +198,22 @@ history_float_large_normal = simulate_bids_history(max_num_bidders = 10000, dist
 history_float_large_exponential = simulate_bids_history(max_num_bidders = 10000, dist = "exponential", upper = upper, upper_float = True)
 
 ## Store all histories generated for easy references.
-histories_fix = {"small": [history_small_uniform, history_small_normal, history_small_exponential],               
-                 "large": [history_large_uniform, history_large_normal, history_large_exponential]}
-histories_float = {"small": [history_float_small_uniform, history_float_small_normal, history_float_small_exponential],               
-                   "large": [history_float_large_uniform, history_float_large_normal, history_float_large_exponential]}
+histories_fix = {"small": 
+                 {"uniform": history_small_uniform, 
+                  "normal": history_small_normal, 
+                  "exponential": history_small_exponential},               
+                 "large": 
+                 {"uniform": history_large_uniform, 
+                  "normal": history_large_normal, 
+                  "exponential": history_large_exponential}}
+histories_float = {"small": 
+                   {"uniform": history_float_small_uniform, 
+                    "normal": history_float_small_normal, 
+                    "exponential": history_float_small_exponential},               
+                   "large": 
+                   {"uniform": history_float_large_uniform, 
+                    "normal": history_float_large_normal, 
+                    "exponential": history_float_large_exponential}}
 histories = {"fix": histories_fix,
              "float": histories_float}
 with open("histories.pkl", "wb") as file:
