@@ -1,23 +1,20 @@
-import pickle
+import pickle 
 import multiprocessing
 from sim_auction import simulate_loop
 
 
-# Retrieve histories
-with open("histories.pkl", "rb") as file:
-        histories = pickle.load(file)
-
-
-
-# Store useful strings for generating a file name.
-file_name_strings = {"upper_status": ["fix", "float"],
-                     "scale_of_bidders": ["small", "large"],
-                     "type_of_dist": ["uniform", "normal", "exponential"],
-                     "pricing_mechanism": ["RSOP", "DOP", "RSDE", "KDE"]}
-
-
 
 if __name__ == "__main__":    
+    # Retrieve histories
+    with open("histories.pkl", "rb") as file:
+        histories = pickle.load(file)
+    
+    # Store useful strings for generating a file name.
+    file_name_strings = {"upper_status": ["fix", "float"],
+                         "scale_of_bidders": ["small", "large"],
+                         "type_of_dist": ["uniform", "normal", "exponential"],
+                         "pricing_mechanism": ["RSOP", "DOP", "RSDE", "KDE"]}
+
     # Number of processes to spawn
     num_processes = 48
 
@@ -25,11 +22,10 @@ if __name__ == "__main__":
     # Create a list to store references to the processes
     processes = []
     params = {"prop": 0.5}
-    
 
     # Create and start the processes
     for i in range(2):
-        upper_status = file_name_strings["upper_float"][i]
+        upper_status = file_name_strings["upper_status"][i]
         if upper_status == "fix":
              params["upper_float"] = False
         elif upper_status == "float":
@@ -40,6 +36,7 @@ if __name__ == "__main__":
 
             for k in range(3):
                 type_of_dist = file_name_strings["type_of_dist"][k]
+                global history
                 history = histories[upper_status][scale_of_bidders][type_of_dist]
                 params = {"history": history}
 

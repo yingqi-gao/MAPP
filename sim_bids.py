@@ -1,7 +1,7 @@
 import random
 import scipy
 from py_utils import get_epc_rev, max_epc_rev
-from r2py_utils import get_bw
+from _py_density_estimation import get_bw
 import pickle
 
 

@@ -1,5 +1,5 @@
 from py_utils import opt, max_epc_rev
-from r2py_utils import density_est
+from _py_density_estimation import density_est
 from functools import partial
 
 def RSOP(group1, group2, *args):

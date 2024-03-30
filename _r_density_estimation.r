@@ -25,7 +25,7 @@ kde_r <- function(test_obs_at_t, lower, upper){
 
 
 # Get cdf of rde (repeated density estimation)
-rep_den_est_r <- function(train_hist, train_bws, test_obs_at_t, lower, upper, grid_size, method){
+rde_r <- function(train_hist, train_bws, test_obs_at_t, lower, upper, grid_size, method){
     ###
     #' Estimates density at round t using the method in “Nonparametric Estimation of Repeated Densities with Heterogeneous Sample Sizes.”
     #'
@@ -113,16 +113,13 @@ rep_den_est_r <- function(train_hist, train_bws, test_obs_at_t, lower, upper, gr
     est_params <- ls.fpca.esti$res[1, ]
     est_params <- replace(est_params, is.na(est_params), 0)
     # 3) Construct estimated pdf over the grid
-    est_pdf <- partial(fpca.den.fam$pdf, par = est_params)
+    est_pdf <- purrr::partial(fpca.den.fam$pdf, par = est_params)
     # 4) Consruct estimated cdf from pdf
     est_cdf <- function(x){
         value <- integrate(est_pdf, lower = lower, upper = x, stop.on.error = FALSE)$value
         return(value)
     }
 
-    # Step 7: Create the list to return
-    result = list(est_params = est_params, est_cdf = est_cdf)
-
     # Return
-    return(result)
+    return(est_cdf)
 }
