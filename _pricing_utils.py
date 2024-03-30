@@ -4,14 +4,15 @@ import scipy
 import pickle
 
 
+
 # Partition a dictionary
-def dict_part(input_dict, prop):
+def dict_part(input_dict, prop = 0.5):
     """
     Partitions a disctionary into two.
 
     Parameter:
     - input_dict (dict): Dictionary to be partitioned.
-    - prop (float): Proportion of items assigned to the first partition.
+    - prop (float): Proportion of items assigned to the first partition (default = 0.5).
 
     Returns:
     - New dictionary 1 (dict).
@@ -32,6 +33,7 @@ def dict_part(input_dict, prop):
     dict2 = {key: input_dict[key] for key in keys if key not in dict1_keys}
 
     return dict1, dict2
+
 
 
 # Find the optimal price - max ib_i
@@ -61,6 +63,7 @@ def opt(bids):
     return price
 
 
+
 # Calculated the expected per capita revenue - p(1-F(p))
 def get_epc_rev(price, *, value_cdf, **kwargs):
     """
@@ -79,14 +82,16 @@ def get_epc_rev(price, *, value_cdf, **kwargs):
     return price * (1 - value_cdf(price, **kwargs))
 
 
+
 # Find the maximum expected per capita revenue - max_p p(1-F(p))
-def max_epc_rev(value_cdf, lower = 1, upper = 100, **kwargs):
+def max_epc_rev(value_cdf, lower, upper, **kwargs):
     """
     Maximizes the expected per capita revenue, i.e., max_p p(1 - F(p)).
 
     Parameters:
     - value_pdf (callable func): Cumulative distribution function of buyers' values.
-    - lower (float) : Lower limit for bidder values and bids (default: 1).
+    - lower (float): Lower limit for bidder values and bids.
+    - upper (float): Upper limit for bidder values and bids.
     - **kwargs: Extra arguments passed to value_cdf.
 
     Return:
@@ -101,6 +106,7 @@ def max_epc_rev(value_cdf, lower = 1, upper = 100, **kwargs):
 
     # Return
     return price.x[0]
+
 
 
 # Transfer between the objects of interests and the files
@@ -123,6 +129,7 @@ def export_objects(t, file_name):
     with open(file_name, "wb") as file:
         pickle.dump(checkpoint, file)
         print(f"Checkpoint at time {t} saved to {file_name}")
+
 
 def import_objects(file_name):
     """

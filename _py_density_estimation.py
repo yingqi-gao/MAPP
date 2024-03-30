@@ -2,8 +2,6 @@
 import rpy2.robjects as robjects
 # os.environ['R_HOME'] = '/u/home/y/yqg36/.conda/envs/rpy2-env/lib/R'
 import functools
-
-
 # import density estimation functions in r
 robjects.r(
     '''
@@ -135,14 +133,17 @@ def rde_py(test_obs_at_t, lower, upper, *, train_hist, train_bws, method = "MLE"
     Repeated density estimation.
 
     Parameters:
-    - test_obs_at_t (num list): Test observations received at round t, i.e., observations for estimating current density.
+    - test_obs_at_t (list[num]): Test observations received at round t, i.e., observations for estimating current density.
     - lower (float): Lower support of all densities.
     - upper (float): Upper support of all densities.
     Keyword Arguments
-    - train_hist (list of num lists): Training history, i.e., stored training observations. Each element is a numeric list storing training observations at round t.
-    - train_bws (num list): Bandwidths selected at each round for kernel density estimation.
+    - train_hist (list[list[num]]): Training history, i.e., stored training observations. Each element is a numeric list storing training observations at round t.
+    - train_bws (list[num]): Bandwidths selected at each round for kernel density estimation.
     - method (str): A string specifying the method to use for calculating the estimated parameters ("MLE", "MAP", "BLUP", default: "MLE").
     - grid_size (int): The number of grid points to generate for evaluating estimated density (default: 1024).
+
+    Return:
+    - The estimated cdf function.
     """
     # Step 1: Convert all Python inputs to acceptible R inputs. 
     params = locals()
@@ -152,6 +153,7 @@ def rde_py(test_obs_at_t, lower, upper, *, train_hist, train_bws, method = "MLE"
     # Step 2: Call and run the repeated density estimation in R. 
     cdf = robjects.r["rde_r"](**params)
     return r2py_func_wrapper(cdf)
+
 
 
 if __name__ == "__main__":

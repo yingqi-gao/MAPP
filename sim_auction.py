@@ -1,5 +1,5 @@
 from pricing import RSOP, DOP, RSDE
-from py_utils import dict_part, get_epc_rev, export_objects
+from _pricing_utils import dict_part, get_epc_rev, export_objects
 
 
 def simulate_auction(pricing = "RSOP", prop = 0.5, repeated = True, t = 100, upper_float = False):

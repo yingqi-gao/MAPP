@@ -1,37 +1,10 @@
-from py_utils import opt, max_epc_rev
-from _py_density_estimation import density_est
+from _pricing_utils import opt, max_epc_rev
+from _py_density_estimation import kde_py, rde_py
 from functools import partial
 
-def RSOP(group1, group2, *args):
-    """
-    Runs a random sampling optimal price auction.
-
-    Parameters:
-    - group1 (dict): Bidders and corresponding bids in group 1.
-    - group2 (dict): Bidders and corresponding bids in group 2.
-
-    Returns:
-    - Auction price (float).
-    - Winners (list of str).
-    """
-    # Step 1: Find the optimal sale price of each group.
-    price1 = opt(group1)
-    price2 = opt(group2)
-    price = max(price1, price2)
-
-    # Step 2: Decide winners in the other group.
-    winners2 = [bidder for bidder, bid in group2.items() if bid >= price1]
-    winners1 = [bidder for bidder, bid in group1.items() if bid >= price2]
-    
-    # Step 3: Store auction results.
-    results = {"group1": {"bidders": group1, "price": price2, "winners": winners1},
-               "group2": {"bidders": group2, "price": price1, "winners": winners2}}
-    
-    # Return
-    return price, results
 
 
-def DOP(bids, *args):
+def DOP(bids):
     """
     Runs a deterministic optimal price auction.
 
@@ -40,7 +13,7 @@ def DOP(bids, *args):
 
     Returns:
     - Auction price (float).
-    - Winners (list of str).
+    - Winners (list[str]).
     """
     winners = []
     price = 0
@@ -60,13 +33,88 @@ def DOP(bids, *args):
     return price, winners
 
 
-def RSDE(group1, group2, repeated = True, t = 100, upper_float = False):
+
+def RSOP(group1, group2):
     """
-    Runs a random sampling density estimation auction.
+    Runs a random sampling optimal price auction.
 
     Parameters:
     - group1 (dict): Bidders and corresponding bids in group 1.
     - group2 (dict): Bidders and corresponding bids in group 2.
+
+    Returns:
+    - Auction price (float).
+    - Auction results (dict).
+    """
+    # Step 1: Find the optimal sale price of each group.
+    price1 = opt(group1)
+    price2 = opt(group2)
+    price = max(price1, price2)
+
+    # Step 2: Decide winners in the other group.
+    winners1 = [bidder for bidder, bid in group1.items() if bid >= price2]
+    winners2 = [bidder for bidder, bid in group2.items() if bid >= price1]
+    
+    # Step 3: Store auction results.
+    results = {"group1": {"bidders": group1, "price": price2, "winners": winners1},
+               "group2": {"bidders": group2, "price": price1, "winners": winners2}}
+    
+    # Return
+    return price, results
+
+
+
+def RSKDE(group1, group2, lower, upper):
+    """
+    Runs a random sampling kernel density estimation auction.
+
+    Parameters:
+    - group1 (dict): Bidders and corresponding bids in group 1.
+    - group2 (dict): Bidders and corresponding bids in group 2.
+    - lower (float): Lower limit for bidder values and bids.
+    - upper (float): Upper limit for bidder values and bids.
+
+    Returns:
+    - Auction price (float).
+    - Auction results (dict).
+    """
+    # Step 1: Estimate density within each group.
+    cdf1 = kde_py([group1.values()], lower, upper)
+    cdf2 = kde_py([group2.values()], lower, upper)
+
+    # Step 2: Find the optimal estimated price for each group.
+    price1 = max_epc_rev(cdf1, lower, upper)
+    price2 = max_epc_rev(cdf2, lower, upper)
+    price = max(price1, price2)
+
+    # Step 3: Decide winners in the other group.
+    winners1 = [bidder for bidder, bid in group1.items() if bid >= price2]
+    winners2 = [bidder for bidder, bid in group2.items() if bid >= price1]
+    
+    # Step 4: Store auction results.
+    results = {"group1": {"bidders": group1, "price": price2, "winners": winners1},
+               "group2": {"bidders": group2, "price": price1, "winners": winners2}}
+    
+    # Return
+    return price, results
+
+
+
+def RSRDE(group1, group2, lower, upper, *, train_hist, train_bws, method = "MLE", grid_size = 1024):
+    """
+    Runs a random sampling repeated density estimation auction.
+
+    Parameters:
+    - group1 (dict): Bidders and corresponding bids in group 1.
+    - group2 (dict): Bidders and corresponding bids in group 2.
+    - lower (float): Lower limit for bidder values and bids.
+    - upper (float): Upper limit for bidder values and bids.
+    Keyword Arguments
+    - train_hist (list[list[num]]): Training history, i.e., stored training observations. Each element is a numeric list storing training observations at round t.
+    - train_bws (list[num]): Bandwidths selected at each round for kernel density estimation.
+    - method (str): A string specifying the method to use for calculating the estimated parameters ("MLE", "MAP", "BLUP", default: "MLE").
+    - grid_size (int): The number of grid points to generate for evaluating estimated density (default: 1024).
+
     - repeated (bool): Whether to use historcial data for density estimation (default: True). 
     - t (int): At which round the auction is implemented (only matters to repeated density estimation, default: 100).
     - upper_float (bool): Whether the upper bound of all the values or bids changes from round to round (default: False).
