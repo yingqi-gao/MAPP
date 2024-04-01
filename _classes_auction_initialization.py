@@ -31,10 +31,10 @@ class OnlineAuctionRandomInitialization:
      is_upper_floated: bool
      min_num_bidders: int
      max_num_bidders: int
-     online_auction_initializations: list[AuctionInitialization] = field(init = False)
+     sequence_auctions: list[AuctionInitialization] = field(init = False)
 
      def __post_init__(self):
-          online_auction_initializations = []
+          sequence_auctions = []
           distribution_reference = {
                "uniform": UniformDistribution,
                "normal": NormalDistribution,
@@ -44,8 +44,8 @@ class OnlineAuctionRandomInitialization:
                upper = random.uniform(0.5 * self.upper, 2 * self.upper) if self.is_upper_floated else self.upper
                true_dist = distribution_reference[self.distribution_type](lower = self.lower, upper = upper)
                auction_initialization_at_t = AuctionInitialization(true_dist = true_dist, min_num_bidders = self.min_num_bidders, max_num_bidders = self.max_num_bidders)
-               online_auction_initializations.append(auction_initialization_at_t)
-          self.online_auction_initializations = online_auction_initializations
+               sequence_auctions.append(auction_initialization_at_t)
+          self.sequence_auctions = sequence_auctions
 
 
 

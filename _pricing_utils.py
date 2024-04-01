@@ -5,39 +5,8 @@ import pickle
 
 
 
-# Partition a dictionary
-def dict_part(input_dict, prop = 0.5):
-    """
-    Partitions a disctionary into two.
-
-    Parameter:
-    - input_dict (dict): Dictionary to be partitioned.
-    - prop (float): Proportion of items assigned to the first partition (default = 0.5).
-
-    Returns:
-    - New dictionary 1 (dict).
-    - New dictionary 2 (dict).
-    """
-    keys = list(input_dict.keys())
-
-    # Calculate the number of keys for the first partition
-    dict1_size = int(len(keys) * prop)
-
-    # Randomly sample keys for the first partition
-    dict1_keys = random.sample(keys, dict1_size)
-
-    # Create the first partition
-    dict1 = {key: input_dict[key] for key in dict1_keys}
-
-    # Create the second partition with the remaining keys
-    dict2 = {key: input_dict[key] for key in keys if key not in dict1_keys}
-
-    return dict1, dict2
-
-
-
 # Find the optimal price - max ib_i
-def opt(bids):
+def opt(bids: dict) -> float:
     """
     Finds the optimal price that maximizes revenue gained from bids received.
 
@@ -61,6 +30,38 @@ def opt(bids):
 
     # Return
     return price
+
+
+
+# Partition a dictionary
+def dict_part(input_dict, prop = 0.5):
+    """
+    Partitions a disctionary into two.
+
+    Parameter:
+    - input_dict (dict): Dictionary to be partitioned.
+    - prop (float): Proportion of items assigned to the first partition (default = 0.5).
+
+    Returns:
+    - New dictionary 1 (dict).
+    - New dictionary 2 (dict).
+    """
+    keys = list(input_dict.keys())
+
+    # Calculate the number of keys for the first partition
+    dict1_size = int(len(keys) * prop)
+
+    # Randomly sample keys for the first partition
+    random.seed(10) # to make sure all pricing mechanisms are compared based on the same bids partition
+    dict1_keys = random.sample(keys, dict1_size)
+
+    # Create the first partition
+    dict1 = {key: input_dict[key] for key in dict1_keys}
+
+    # Create the second partition with the remaining keys
+    dict2 = {key: input_dict[key] for key in keys if key not in dict1_keys}
+
+    return dict1, dict2
 
 
 
@@ -109,41 +110,39 @@ def max_epc_rev(value_cdf, lower, upper, **kwargs):
 
 
 
-# Transfer between the objects of interests and the files
-def export_objects(t, file_name):
+# Scale the value
+def scale_value(value, lower, old_upper, new_upper):
     """
-    Exports objects of interests at a checkpoint to a file. 
-    
+    Scales the random value generated from [lower, old_upper] as if from [lower, new_upper].
+
     Parameters:
-    - t (int): Current checkpoint in terms of time. 
-    - file_name (str): Name of the file to store the objects at the current checkpoint.
+    - value (float): Value to scale.
+    - lower (float): Lower limit of the range where the value is generated from. 
+    - old_upper (float): Upper limit of the range where the value is generated from.
+    - new_upper (float): Upper limit of the range where the value is pretended to be generated from.
+
+    Return:
+    - Scaled value (float).
     """
-    global history, actual_revenue_history, regret_history, estimated_parameters_stored
-    checkpoint = {"history": history, 
-                  "actual_revenue_history": actual_revenue_history,
-                  "regret_history": regret_history}
-    if estimated_parameters_stored:
-        global estimated_parameters_history
-        checkpoint["estimated_parameters_history"] = estimated_parameters_history
-        
-    with open(file_name, "wb") as file:
-        pickle.dump(checkpoint, file)
-        print(f"Checkpoint at time {t} saved to {file_name}")
+    return lower + (value - lower) / (old_upper - lower) * (new_upper - lower)
 
 
-def import_objects(file_name):
-    """
-    Imports objects of interests from a file.
-    
-    Parameter:
-    - file_name (str): Name of the file to import the objects from.
-    
-    Return: 
-    A dictionary of objects of interests.
-    """
-    with open(file_name, "rb") as file:
-        dict_objects = pickle.load(file)
 
-    print(len(dict_objects["regret_history"]))
+# Scale the cdf
+def scale_cdf(cdf, lower, old_upper, new_upper):
+    """
+    Scales the cdf with support of [lower, old_upper] to [lower, new_upper].
+
+    Parameters:
+    - cdf (Callable): cdf to scale.
+    - lower (float): Lower limit of the range where the value is generated from. 
+    - old_upper (float): Upper limit of the range where the value is generated from.
+    - new_upper (float): Upper limit of the range where the value is pretended to be generated from.
+
+    Return:
+    - Scaled cdf (Callable).
+    """
+    def scaled_cdf(x):
+        return scale_value(cdf(x), lower, old_upper, new_upper)
     
-    return dict_objects
+    return scaled_cdf

@@ -1,4 +1,4 @@
-from pricing import RSOP, DOP, RSDE
+from _pricing_mechanisms import RSOP, DOP, RSDE
 from _pricing_utils import dict_part, get_epc_rev, export_objects
 
 
