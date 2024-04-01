@@ -55,7 +55,9 @@ class OnlineAuctions:
     DOP_results: list[DOPResults] = field(init = False)
     RSOP_results: list[RSOPResults] = field(init = False)
     RSKDE_results: list[RSKDEResults] = field(init = False)
-    RSRDE_results: list[RSRDEResults] = field(init = False) # half the length of other's
+    RSRDE_MLE_results: list[RSRDEResults] = field(init = False) # half the length 
+    RSRDE_MAP_results: list[RSRDEResults] = field(init = False) # half the length
+    RSRDE_BLUP_results: list[RSRDEResults] = field(init = False) # half the length
 
     def __post_init__(self):
         is_upper_floated = self.online_initialization.is_upper_floated
@@ -107,6 +109,13 @@ class OnlineAuctions:
             bids_list = [bid if not is_upper_floated else scale_value(bid, lower = lower, old_upper = upper, new_upper = common_upper) for bid in bids.values()]
             train_hist.append(bids_list)
             train_bws.append(get_bw(bids_list))
+        
+        self.DOP_results = DOP_results
+        self.RSOP_results = RSOP_results
+        self.RSKDE_results = RSKDE_results
+        self.RSRDE_MLE_results = RSRDE_MLE_results
+        self.RSRDE_MAP_results = RSRDE_MAP_results
+        self.RSRDE_BLUP_results = RSRDE_BLUP_results
             
 
 

@@ -2,6 +2,12 @@
 import rpy2.robjects as robjects
 # os.environ['R_HOME'] = '/u/home/y/yqg36/.conda/envs/rpy2-env/lib/R'
 import functools
+
+import numpy
+
+import anndata2ri
+anndata2ri.activate()
+
 # import density estimation functions in r
 robjects.r(
     '''
@@ -61,6 +67,8 @@ def r2py(obj):
             return output
     elif isinstance(obj, robjects.vectors.ListVector):
         return [r2py(item) for item in obj]
+    elif isinstance(obj, numpy.ndarray) and obj.ndim == 1:
+        return obj.tolist()[0]
     else:
         raise ValueError(f"Input's type not supported for conversion. The type is {type(obj)}")
     
