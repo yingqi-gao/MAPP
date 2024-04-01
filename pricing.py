@@ -79,8 +79,8 @@ def RSKDE(group1, group2, lower, upper):
     - Auction results (dict).
     """
     # Step 1: Estimate density within each group.
-    cdf1 = kde_py([group1.values()], lower, upper)
-    cdf2 = kde_py([group2.values()], lower, upper)
+    cdf1 = kde_py([*group1.values()], lower, upper)
+    cdf2 = kde_py([*group2.values()], lower, upper)
 
     # Step 2: Find the optimal estimated price for each group.
     price1 = max_epc_rev(cdf1, lower, upper)

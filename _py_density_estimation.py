@@ -35,10 +35,10 @@ def py2r(obj):
             #print("hereeeeee")
             return robjects.r.list(*vals)
         else:
-            raise ValueError([type(val) for val in vals])
+            raise ValueError(f"Not a (nested) numeric list, but a list of: {[type(val) for val in vals]}")
     elif any(isinstance(obj, type_) for type_ in [float, int, bool, str]):
         return obj
-    raise ValueError()
+    raise ValueError("Input's type not supported for conversion.")
 
 
 def r2py(obj):
@@ -62,7 +62,7 @@ def r2py(obj):
     elif isinstance(obj, robjects.vectors.ListVector):
         return [r2py(item) for item in obj]
     else:
-        raise ValueError(type(obj))
+        raise ValueError(f"Input's type not supported for conversion. The type is {type(obj)}")
     
 
 def r2py_func_wrapper(func):
