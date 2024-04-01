@@ -10,6 +10,7 @@ def run_process(name, initialization):
         pickle.dump(online_auctions, file)
 
 
+
 def main():
     with open("initializations.pkl", "rb") as file:
         online_auction_initializations = pickle.load(file)
@@ -31,3 +32,6 @@ def main():
     print("All processes have finished.")
     
 
+
+if __name__ == "__main__":
+    main()
