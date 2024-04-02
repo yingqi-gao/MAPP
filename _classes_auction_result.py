@@ -67,7 +67,7 @@ class OnlineAuctions:
         RSRDE_MLE_results, RSRDE_MAP_results, RSRDE_BLUP_results = [], [], []
         train_hist, train_bws = [], []
 
-        for i in range(self.online_initialization.num_rounds):
+        for i in range(10): # self.online_initialization.num_rounds
             auction_initialization = self.online_initialization.sequence_auctions[i]
             bids = auction_initialization.bids
             lower = auction_initialization.true_dist.lower
@@ -89,21 +89,27 @@ class OnlineAuctions:
             if i >= 100:
                 # MLE
                 RSRDE_MLE_price, RSRDE_MLE_estimated_cdfs = RSRDE(bids, lower = lower, upper = common_upper, train_hist = train_hist, train_bws = train_bws, method = "MLE")
+                RSRDE_MLE_price = RSRDE_MLE_price if not is_upper_floated else scale_value(RSRDE_MLE_price, lower = lower, old_upper = common_upper, new_upper = upper)
+                RSRDE_MLE_estimated_cdfs =  RSRDE_MLE_estimated_cdfs if not is_upper_floated else scale_cdf(RSRDE_MLE_estimated_cdfs, lower = lower, old_upper = common_upper, new_upper = upper)
                 RSRDE_MLE_results.append(RSRDEResults(initialization = auction_initialization, 
-                                                      actual_price = RSRDE_MLE_price if not is_upper_floated else scale_value(RSRDE_MLE_price, lower = lower, old_upper = common_upper, new_upper = upper), 
-                                                      estimated_cdfs = RSRDE_MLE_estimated_cdfs if not is_upper_floated else scale_cdf(RSRDE_MLE_estimated_cdfs, lower = lower, old_upper = common_upper, new_upper = upper), 
+                                                      actual_price = RSRDE_MLE_price, 
+                                                      estimated_cdfs = RSRDE_MLE_estimated_cdfs, 
                                                       RSRDE_method = "MLE"))
                 # MAP
                 RSRDE_MAP_price, RSRDE_MAP_estimated_cdfs = RSRDE(bids, lower = lower, upper = common_upper, train_hist = train_hist, train_bws = train_bws, method = "MAP")
+                RSRDE_MAP_price = RSRDE_MAP_price if not is_upper_floated else scale_value(RSRDE_MAP_price, lower = lower, old_upper = common_upper, new_upper = upper)
+                RSRDE_MAP_estimated_cdfs = RSRDE_MAP_estimated_cdfs if not is_upper_floated else scale_cdf(RSRDE_MAP_estimated_cdfs, lower = lower, old_upper = common_upper, new_upper = upper)
                 RSRDE_MAP_results.append(RSRDEResults(initialization = auction_initialization, 
-                                                      actual_price = RSRDE_MAP_price if not is_upper_floated else scale_value(RSRDE_MAP_price, lower = lower, old_upper = common_upper, new_upper = upper), 
-                                                      estimated_cdfs = RSRDE_MAP_estimated_cdfs if not is_upper_floated else scale_cdf(RSRDE_MAP_estimated_cdfs, lower = lower, old_upper = common_upper, new_upper = upper),  
+                                                      actual_price = RSRDE_MAP_price, 
+                                                      estimated_cdfs = RSRDE_MAP_estimated_cdfs,  
                                                       RSRDE_method = "MAP"))
                 # BLUP
                 RSRDE_BLUP_price, RSRDE_BLUP_estimated_cdfs = RSRDE(bids, lower = lower, upper = common_upper, train_hist = train_hist, train_bws = train_bws, method = "BLUP")
+                RSRDE_BLUP_price = RSRDE_BLUP_price if not is_upper_floated else scale_value(RSRDE_BLUP_price, lower = lower, old_upper = common_upper, new_upper = upper)
+                RSRDE_BLUP_estimated_cdfs = RSRDE_BLUP_estimated_cdfs if not is_upper_floated else scale_cdf(RSRDE_BLUP_estimated_cdfs, lower = lower, old_upper = common_upper, new_upper = upper)
                 RSRDE_BLUP_results.append(RSRDEResults(initialization = auction_initialization, 
-                                                       actual_price = RSRDE_BLUP_price if not is_upper_floated else scale_value(RSRDE_BLUP_price, lower = lower, old_upper = common_upper, new_upper = upper), 
-                                                       estimated_cdfs = RSRDE_BLUP_estimated_cdfs if not is_upper_floated else scale_cdf(RSRDE_BLUP_estimated_cdfs, lower = lower, old_upper = common_upper, new_upper = upper),  
+                                                       actual_price = RSRDE_BLUP_price, 
+                                                       estimated_cdfs = RSRDE_BLUP_estimated_cdfs,  
                                                        RSRDE_method = "BLUP"))
             
             bids_list = [bid if not is_upper_floated else scale_value(bid, lower = lower, old_upper = upper, new_upper = common_upper) for bid in bids.values()]
