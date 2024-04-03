@@ -21,7 +21,6 @@ class AuctionInitialization:
 
 
 
-
 @dataclass
 class OnlineAuctionRandomInitialization:
      num_rounds: int

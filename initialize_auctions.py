@@ -1,4 +1,4 @@
-from _classes_auction_initialization import OnlineAuctionRandomInitialization
+from _classes_initialization import OnlineAuctionRandomInitialization
 import pickle
 
 
