@@ -35,37 +35,26 @@ def run_process(online_initialization: OnlineAuctionRandomInitialization,
 
 
 
-# def main():
-#     with open("initializations.pkl", "rb") as file:
-#         online_auction_initializations = pickle.load(file)
-
-#     num_processes = 12
-#     processes = []
-
-#     for name, initialization in online_auction_initializations.items():
-#         process = multiprocessing.Process(target = run_process, kwargs = {"name": name, "initialization": initialization})
-#         processes.append(process) 
-                    
-#     for process in processes:
-#         process.start()
-
-#     # Wait for all processes to finish
-#     for process in processes:
-#         process.join()
-
-#     print("All processes have finished.")
-        
 def main():
-    with open("initializations.pkl", "rb") as file:
+    with open("data/initializations.pkl", "rb") as file:
         online_auction_initializations = dill.load(file)
 
-    test_flag = True
-    for name, initialization in online_auction_initializations.items():
-        run_process(initialization, name)
-        if test_flag:
-            break
+    num_processes = 12
+    processes = []
 
-    print("All done done!!!")    
+    for name, initialization in online_auction_initializations.items():
+        process = multiprocessing.Process(target = run_process, kwargs = {"online_initialization": initialization, "online_initialization_name": name})
+        processes.append(process) 
+                    
+    for process in processes:
+        process.start()
+
+    # Wait for all processes to finish
+    for process in processes:
+        process.join()
+
+    print("All processes have finished.")
+    
 
 
 if __name__ == "__main__":

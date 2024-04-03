@@ -37,7 +37,7 @@ def plot_regret(online_auctions_name: str):
 
 
 def main():
-        with open("initializations.pkl", "rb") as file:
+        with open("data/initializations.pkl", "rb") as file:
                 online_auction_initializations = dill.load(file)
         
         for name in online_auction_initializations.keys():

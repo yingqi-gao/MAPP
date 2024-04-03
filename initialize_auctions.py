@@ -36,7 +36,7 @@ def main():
                 
                 initializations_to_dump["_".join([name1, name2, name3])] = OnlineAuctionRandomInitialization(**initialization_params)
                 
-    with open("initializations.pkl", "wb") as file:
+    with open("data/initializations.pkl", "wb") as file:
         pickle.dump(initializations_to_dump, file)
 
 

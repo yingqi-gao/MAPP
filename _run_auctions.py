@@ -16,7 +16,7 @@ def run_auctions(online_initialization: OnlineAuctionRandomInitialization,
 
     sequence_auctions = []
     training_history = []
-    for i in range(num_rounds): # Test: 102
+    for i in range(102): # Test: 102
         auction_initialization = online_initialization.sequence_auctions[i]
 
         if pricing_mechanism == "DOP":
@@ -56,7 +56,7 @@ def run_auctions(online_initialization: OnlineAuctionRandomInitialization,
 
         if i % 10 == 9:
             file_name = online_initialization_name + "_" + pricing_mechanism
-            with open(file_name + ".pkl", "wb") as file:
+            with open("data/" + file_name + ".pkl", "wb") as file:
                 dill.dump(sequence_auctions, file)
             print(f"Round {i + 1} of {file_name} done!")
 
