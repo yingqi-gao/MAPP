@@ -16,7 +16,7 @@ def run_auctions(online_initialization: OnlineAuctionRandomInitialization,
 
     sequence_auctions = []
     training_history = []
-    for i in range(102): # Test: 102
+    for i in range(num_rounds): # Test: 102
         auction_initialization = online_initialization.sequence_auctions[i]
 
         if pricing_mechanism == "DOP":
