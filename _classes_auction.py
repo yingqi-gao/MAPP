@@ -35,8 +35,8 @@ class Auction:
         self.ideal_price, self.ideal_revenue = self.initialization.true_dist.get_ideals()
         self.regret = self.ideal_revenue - self.actual_revenue
         if self.regret < 0:
+            print()
             raise ValueError("Regret can never be negative!")
-
 
 @dataclass
 class DOPAuction(Auction):

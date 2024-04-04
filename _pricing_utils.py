@@ -100,10 +100,10 @@ def max_epc_rev(value_cdf, lower, upper):
     wrapped_get_epc_rev = partial(get_epc_rev, value_cdf = value_cdf)
 
     # Step 2: Maximization
-    results = scipy.optimize.minimize_scalar(lambda x: -1 * wrapped_get_epc_rev(x), bounds = (lower, upper))
+    results = scipy.optimize.minimize(lambda x: -wrapped_get_epc_rev(x), x0 = lower, method = "L-BFGS-B", bounds = ((lower, upper),))
 
     # Return
-    return results.x, -1 * results.fun
+    return results.x[0], -results.fun
 
 
 
