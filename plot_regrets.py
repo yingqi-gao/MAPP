@@ -1,49 +1,57 @@
+import os
 import dill
-from _classes_auction import OnlineAuctions
 import numpy as np
-from dataclasses import fields
-import math
 import matplotlib.pyplot as plt
 
 
 
-def plot_regret(online_auctions_name: str):
-        with open(online_auctions_name + ".pkl", "rb") as file:
+def get_regrets(initialization_name: str, num_rounds = 200):
+    
+    regrets_to_plot = {}
+    
+    for file_name in os.listdir("data"):
+        if file_name.startswith(initialization_name):
+            pricing_mechanism = file_name.split("_")[3]
+            if pricing_mechanism == "RSRDE":
+                method = file_name.split("_")[4].split(".")[0]
+                pricing_mechanism = pricing_mechanism + "_" + method
+            
+            with open("data/" + file_name, "rb") as file:
                 online_auctions = dill.load(file)
-        print(len(online_auctions.DOP_results))
-
-        # num_rounds = online_auctions.online_initialization.num_rounds
-        # x = np.arange(0, num_rounds)
-
-        # fig, ax = plt.subplots()
-        # for auctions_result in fields(online_auctions):
-        #         if auctions_result.name.endswith("results"):
-        #                 pricing_mechanism = auctions_result.name.split("_")[0]
-        #                 regret = [per_auction_results.regret for per_auction_results in getattr(online_auctions, auctions_result.name)]
-
-        #                 if auctions_result.name.split("_")[0] == "RSRDE":
-        #                         method = auctions_result.name.split("_")[1]
-        #                         x = x[math.floor(num_rounds / 2):]
-        #                         pricing_mechanism = pricing_mechanism + method
-
-        #                 ax.plot(x, regret, label = pricing_mechanism)
-
-        # legend = ax.legend()
-        # plt.xlabel('round')
-        # plt.ylabel('regret')
-        # plt.show()
-        # plt.savefig(online_auctions_name + ".png")
-
+                
+            if len(online_auctions) is not num_rounds:
+                raise ValueError(f"Number of rounds is {len(online_auctions)}, supposed to be {num_rounds}!")
+            
+            regret = [auction.regret for auction in online_auctions if auction is not None]
+            
+            regrets_to_plot[pricing_mechanism] = regret
+    
+    return regrets_to_plot
+    
 
 
 def main():
-        with open("data/initializations.pkl", "rb") as file:
-                online_auction_initializations = dill.load(file)
-        
-        for name in online_auction_initializations.keys():
-                plot_regret(name)
-        
-        plot_regret("uniform_fixed_small")
+    with open("data/initializations.pkl", "rb") as file:
+        initializations = dill.load(file)
+
+    for name in initializations.keys():
+        regrets_to_plot = get_regrets(name)
+    
+        plt.figure()
+    
+        for pricing_mechanism, regrets in regrets_to_plot.items():
+             x = np.arange(0, 200) # number of rounds = 200
+             if pricing_mechanism.startswith("RSRDE"):
+                 x = np.arange(101, 200)
+             plt.plot(x, regrets, label = pricing_mechanism, linewidth = 0.5)
+                
+        plt.xlabel('round')
+        plt.ylabel('regret')
+        plt.legend()
+        plt.title(name)
+    
+        plt.savefig(name + ".png")
+
         
 
 if __name__ == "__main__":
