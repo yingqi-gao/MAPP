@@ -7,19 +7,19 @@ import dill
 
 
 
-def run_auctions(# lock,
+def run_auctions(lock,
                  online_initialization: OnlineAuctionRandomInitialization, 
                  online_initialization_name: str,
                  pricing_mechanism: float) -> list[Auction]:
     # acquire the lock
-    # with lock:
+    with lock:
         num_rounds = online_initialization.num_rounds
         common_upper = online_initialization.upper
         is_upper_floated = online_initialization.is_upper_floated
 
         sequence_auctions = []
         training_history = []
-        for i in range(110): # Test: 110
+        for i in range(num_rounds): # Test: 110
             auction_initialization = online_initialization.sequence_auctions[i]
 
             if pricing_mechanism == "DOP":
