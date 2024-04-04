@@ -65,7 +65,7 @@ def dict_part(input_dict, prop = 0.5):
 
 
 # Calculated the expected per capita revenue - p(1-F(p))
-def get_epc_rev(price, *, value_cdf, **kwargs):
+def get_epc_rev(price, *, value_cdf):
     """
     Calculates expected per capita revenue given the value cdf, i.e., p(1 - F(p)).
 
@@ -74,17 +74,16 @@ def get_epc_rev(price, *, value_cdf, **kwargs):
 
     Keyword Arguments
     - value_cdf (callable func): Cumulative distribution function of buyers' values.
-    - **kwargs: Extra arguments passed to value_cdf.
 
     Return:
     - Function value (float).
     """
-    return price * (1 - value_cdf(price, **kwargs))
+    return price * (1 - value_cdf(price))
 
 
 
 # Find the maximum expected per capita revenue - max_p p(1-F(p))
-def max_epc_rev(value_cdf, lower, upper, **kwargs):
+def max_epc_rev(value_cdf, lower, upper):
     """
     Maximizes the expected per capita revenue, i.e., max_p p(1 - F(p)).
 
@@ -92,20 +91,19 @@ def max_epc_rev(value_cdf, lower, upper, **kwargs):
     - value_pdf (callable func): Cumulative distribution function of buyers' values.
     - lower (float): Lower limit for bidder values and bids.
     - upper (float): Upper limit for bidder values and bids.
-    - **kwargs: Extra arguments passed to value_cdf.
 
     Return:
     - Optimal price (maximum point) (float).
     - Optimal expected per capita revenue (maximum) (float).
     """
     # Step 1: Wrap get_epc_rev with the given value cdf and extra arguments if any
-    wrapped_get_epc_rev = partial(get_epc_rev, value_cdf = value_cdf, **kwargs)
+    wrapped_get_epc_rev = partial(get_epc_rev, value_cdf = value_cdf)
 
     # Step 2: Maximization
-    price = scipy.optimize.minimize(lambda x: -wrapped_get_epc_rev(x), x0 = (lower + upper) / 2, bounds = ((lower, upper),))
+    results = scipy.optimize.minimize_scalar(lambda x: -1 * wrapped_get_epc_rev(x), bounds = (lower, upper))
 
     # Return
-    return price.x[0]
+    return results.x, results.func
 
 
 

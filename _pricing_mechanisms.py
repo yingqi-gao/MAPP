@@ -56,7 +56,7 @@ def RSKDE(bids, lower, upper):
 
     Returns:
     - Auction price (float).
-    - Estimated cdfs (Tuple[Callable, Callable]).
+    - Estimated cdfs (tuple[Callable, Callable]).
     """
     # Step 1: Partition bids into two groups.
     group1, group2 = dict_part(bids)
@@ -90,7 +90,7 @@ def RSRDE(bids, lower, upper, *, train_hist, train_bws, method = "MLE", grid_siz
 
     Returns:
     - Auction price (float).
-    - Estimated cdfs (Tuple[Callable, Callable]).
+    - Estimated cdfs (tuple[Callable, Callable]).
     """ 
     # Step 1: Partition bids into two groups.
     group1, group2 = dict_part(bids)

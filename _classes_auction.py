@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field, InitVar
 from _py_density_estimation import get_bw
 from _classes_initialization import AuctionInitialization
-from typing import Optional, Tuple, Callable
+from typing import Optional, Callable
 from _pricing_mechanisms import DOP, RSOP, RSKDE, RSRDE
 from _pricing_utils import scale_cdf
 import warnings
@@ -34,6 +34,8 @@ class Auction:
         self.actual_revenue = self.initialization.true_dist.get_actual_revenue(self.actual_price)
         self.ideal_price, self.ideal_revenue = self.initialization.true_dist.get_ideals()
         self.regret = self.ideal_revenue - self.actual_revenue
+        if self.regret < 0:
+            raise ValueError("Regret can never be negative!")
 
 
 @dataclass
@@ -60,7 +62,7 @@ class RSOPAuction(Auction):
 class RSKDEAuction(Auction):
     pricing_mechanism: str = "RSKDE"
     actual_price: float = field(init = False)
-    estimated_cdfs: Tuple[Callable, Callable] = field(init = False)
+    estimated_cdfs: tuple[Callable, Callable] = field(init = False)
 
     def __post_init__(self, common_upper, is_upper_floated, training_history):
         self.actual_price, self.estimated_cdfs = RSKDE(self.initialization.bids, 
@@ -77,7 +79,7 @@ class RSRDEAuction(Auction):
     RSRDE_method: str = "MLE" # "MLE", "MAP", "BLUP"
     pricing_mechanism: str = "RSRDE"
     actual_price: float = field(init = False)
-    estimated_cdfs: Tuple[Callable, Callable] = field(init = False)
+    estimated_cdfs: tuple[Callable, Callable] = field(init = False)
 
     def __post_init__(self, common_upper, is_upper_floated, training_history):
         self.actual_price, estimated_cdfs = RSRDE(self.initialization.bids, 
