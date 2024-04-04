@@ -103,7 +103,7 @@ def max_epc_rev(value_cdf, lower, upper):
     results = scipy.optimize.minimize_scalar(lambda x: -1 * wrapped_get_epc_rev(x), bounds = (lower, upper))
 
     # Return
-    return results.x, results.func
+    return results.x, -1 * results.fun
 
 
 

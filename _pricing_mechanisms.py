@@ -66,8 +66,8 @@ def RSKDE(bids, lower, upper):
     cdf2 = kde_py([*group2.values()], lower, upper)
 
     # Step 3: Find the optimal estimated price for each group.
-    price1 = max_epc_rev(cdf1, lower, upper)
-    price2 = max_epc_rev(cdf2, lower, upper)
+    price1, rev1 = max_epc_rev(cdf1, lower, upper)
+    price2, rev2 = max_epc_rev(cdf2, lower, upper)
     
     # Return
     return max(price1, price2), (cdf1, cdf2)
@@ -100,8 +100,8 @@ def RSRDE(bids, lower, upper, *, train_hist, train_bws, method = "MLE", grid_siz
     cdf2 = rde_py([*group2.values()], lower, upper, train_hist = train_hist, train_bws = train_bws, method = method, grid_size = grid_size)
 
     # Step 3: Find the optimal estimated price for each group.
-    price1 = max_epc_rev(cdf1, lower, upper)
-    price2 = max_epc_rev(cdf2, lower, upper)
+    price1, rev1 = max_epc_rev(cdf1, lower, upper)
+    price2, rev2 = max_epc_rev(cdf2, lower, upper)
     
     # Return
     return max(price1, price2), (cdf1, cdf2)
