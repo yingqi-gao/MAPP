@@ -3,8 +3,7 @@ from _py_density_estimation import get_bw
 from _classes_initialization import AuctionInitialization
 from typing import Optional, Callable
 from _pricing_mechanisms import DOP, RSOP, RSKDE, RSRDE
-from _pricing_utils import scale_cdf
-import warnings
+
 
 
 @dataclass
@@ -35,8 +34,8 @@ class Auction:
         self.ideal_price, self.ideal_revenue = self.initialization.true_dist.get_ideals()
         self.regret = self.ideal_revenue - self.actual_revenue
         if self.regret < 0:
-            print()
             raise ValueError("Regret can never be negative!")
+
 
 @dataclass
 class DOPAuction(Auction):
@@ -88,12 +87,6 @@ class RSRDEAuction(Auction):
                                                   train_hist = [training_data.observations for training_data in training_history], 
                                                   train_bws = [training_data.bandwidth for training_data in training_history], 
                                                   method = self.RSRDE_method)
-        if is_upper_floated:
-            lower = self.initialization.true_dist.lower
-            upper = self.initialization.true_dist.upper
-            if upper == common_upper:
-                    warnings.warn(f"Upper is the same as the common upper: {common_upper}")
-            self.estimated_cdfs = scale_cdf(estimated_cdfs, lower = lower, old_upper = common_upper, new_upper = upper)
         super().__post_init__(common_upper, is_upper_floated, training_history)
 
 
