@@ -26,17 +26,18 @@ def DOP(bids):
 
 
 
-def RSOP(bids):
+def RSOP(bids, random_seed):
     """
     Runs a random sampling optimal price auction.
 
     Parameters:
     - bids (dict): Bidders and corresponding bids.
+    - random_seed (int): A random seed for all pricing mechanisms to use the same partition.
 
     Returns:
     - Auction price (float).
     """
-    group1, group2 = dict_part(bids)
+    group1, group2 = dict_part(bids, random_seed)
 
     price1 = opt(group1)
     price2 = opt(group2)
@@ -45,7 +46,7 @@ def RSOP(bids):
 
 
 
-def RSKDE(bids, lower, upper):
+def RSKDE(bids, lower, upper, random_seed):
     """
     Runs a random sampling kernel density estimation auction.
 
@@ -53,13 +54,14 @@ def RSKDE(bids, lower, upper):
     - bids (dict): Bidders and corresponding bids.
     - lower (float): Lower limit for bidder values and bids.
     - upper (float): Upper limit for bidder values and bids.
+    - random_seed (int): A random seed for all pricing mechanisms to use the same partition.
 
     Returns:
     - Auction price (float).
     - Estimated cdfs (tuple[Callable, Callable]).
     """
     # Step 1: Partition bids into two groups.
-    group1, group2 = dict_part(bids)
+    group1, group2 = dict_part(bids, random_seed)
 
     # Step 2: Estimate density within each group.
     cdf1 = kde_py([*group1.values()], lower, upper)
@@ -74,7 +76,7 @@ def RSKDE(bids, lower, upper):
 
 
 
-def RSRDE(bids, lower, upper, *, train_hist, train_bws, method = "MLE", grid_size = 1024):
+def RSRDE(bids, lower, upper, random_seed, *, train_hist, train_bws, method = "MLE", grid_size = 1024):
     """
     Runs a random sampling repeated density estimation auction.
 
@@ -82,6 +84,7 @@ def RSRDE(bids, lower, upper, *, train_hist, train_bws, method = "MLE", grid_siz
     - bids (dict): Bidders and corresponding bids.
     - lower (float): Lower limit for bidder values and bids.
     - upper (float): Upper limit for bidder values and bids.
+    - random_seed (int): A random seed for all pricing mechanisms to use the same partition.
     Keyword Arguments
     - train_hist (list[list[num]]): Training history, i.e., stored training observations. Each element is a numeric list storing training observations at round t.
     - train_bws (list[num]): Bandwidths selected at each round for kernel density estimation.
@@ -93,7 +96,7 @@ def RSRDE(bids, lower, upper, *, train_hist, train_bws, method = "MLE", grid_siz
     - Estimated cdfs (tuple[Callable, Callable]).
     """ 
     # Step 1: Partition bids into two groups.
-    group1, group2 = dict_part(bids)
+    group1, group2 = dict_part(bids, random_seed)
 
     # Step 2: Estimate density within each group.
     cdf1 = rde_py([*group1.values()], lower, upper, train_hist = train_hist, train_bws = train_bws, method = method, grid_size = grid_size)

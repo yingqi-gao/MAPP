@@ -33,12 +33,13 @@ def opt(bids: dict) -> float:
 
 
 # Partition a dictionary
-def dict_part(input_dict, prop = 0.5):
+def dict_part(input_dict, random_seed, prop = 0.5):
     """
     Partitions a disctionary into two.
 
     Parameter:
     - input_dict (dict): Dictionary to be partitioned.
+    - random_seed (int): A random seed for all pricing mechanisms to use the same partition.
     - prop (float): Proportion of items assigned to the first partition (default = 0.5).
 
     Returns:
@@ -51,7 +52,7 @@ def dict_part(input_dict, prop = 0.5):
     dict1_size = int(len(keys) * prop)
 
     # Randomly sample keys for the first partition
-    random.seed(10) # to make sure all pricing mechanisms are compared based on the same bids partition
+    random.seed(random_seed) # to make sure all pricing mechanisms are compared based on the same bids partition
     dict1_keys = random.sample(keys, dict1_size)
 
     # Create the first partition
