@@ -136,30 +136,59 @@ def kde_py(observations, lower, upper):
 
 
 # Repeated density estimation
-def rde_py(test_obs_at_t, lower, upper, *, train_hist, train_bws, method = "MLE", grid_size = 1024):
+# 1. Training
+def rde_training_py(*, train_hist, train_bws, lower, upper, grid_size = 1024):
     """
-    Repeated density estimation.
+    Training part of repeated density estimation.
 
     Parameters:
-    - test_obs_at_t (list[num]): Test observations received at round t, i.e., observations for estimating current density.
-    - lower (float): Lower support of all densities.
-    - upper (float): Upper support of all densities.
-    Keyword Arguments
-    - train_hist (list[list[num]]): Training history, i.e., stored training observations. Each element is a numeric list storing training observations at round t.
-    - train_bws (list[num]): Bandwidths selected at each round for kernel density estimation.
-    - method (str): A string specifying the method to use for calculating the estimated parameters ("MLE", "MAP", "BLUP", default: "MLE").
-    - grid_size (int): The number of grid points to generate for evaluating estimated density (default: 1024).
+    - train_hist (list[list[num]]): Training history, i.e., stored training observations. 
+    - train_bws (list[num]): Bandwidths selected for each training vector.
+    - lower (num): Lower bound of the common support of all densities.
+    - upper (num): Upper support of the common support of all densities.
+    - grid_size (int): Number of grid points to use for evaluating estimated density.
+
+    Return: A list of 
+    - fpca_res (robjects.vectors.ListVector): Results of principal principal components analysis.
+    - max_k (int): Maximum number of functional principal components to use.
+    - fpca_den_fam_pdf (R function): Estimated pdf function of the family.
+    """
+    # Step 1: Convert all Python inputs to acceptible R inputs. 
+    params = locals()
+    params = {key: py2r(value) for key, value in params.items()}
+
+    # Step 2: Call and run the rde_training_r function in R.
+    results = robjects.r["rde_training_r"](**params)
+    
+    return results
+
+
+# 2. Testing
+def rde_testing_py(*, test_obs_at_t, method = "MLE", lower, training_results):
+    """
+    Testing part of repeated density estimation.
+
+    Parameters:
+    - test_obs_at_t (num vec): Test observations received at round t, i.e., 
+                               observations to estimate density of.
+    - method (str): Method to use for calculating the estimated parameters
+                    ("MLE", "MAP", "BLUP", default: "MLE").
+    - lower (float): Lower bound of the common support of all densities.
+    - training_results (R list): Results from rde_training_r.
 
     Return:
     - The estimated cdf function.
     """
     # Step 1: Convert all Python inputs to acceptible R inputs. 
-    params = locals()
-    params["method"] = "FPCA_" + method
-    params = {key: py2r(value) for key, value in params.items()}
+    test_obs_at_t = py2r(test_obs_at_t)
+    method = "FPCA_" + method
 
     # Step 2: Call and run the repeated density estimation in R. 
-    cdf = robjects.r["rde_r"](**params)
+    cdf = robjects.r["rde_testing_r"](test_obs_at_t = test_obs_at_t,
+                                      method = method,
+                                      lower = lower,
+                                      training_results = training_results)
+    
     return r2py_func_wrapper(cdf)
 
 
