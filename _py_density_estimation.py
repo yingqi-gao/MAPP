@@ -8,13 +8,6 @@ import numpy
 import anndata2ri
 anndata2ri.activate()
 
-# import density estimation functions in r
-robjects.r(
-    '''
-    source('_r_density_estimation.r')
-    '''
-)
-
 
 
 # Convert between Python objects and R objects.
@@ -129,8 +122,12 @@ def kde_py(observations, lower, upper):
     Return:
     - The estimated cdf function.
     """
+    # import density estimation functions in r
+    robjects.r('''source('_r_density_estimation.r')''')
+
     observations = py2r(observations)
     cdf = robjects.r["kde_r"](observations, lower, upper)
+
     return r2py_func_wrapper(cdf)
 
 
@@ -153,6 +150,9 @@ def rde_training_py(*, train_hist, train_bws, lower, upper, grid_size = 1024):
     - max_k (int): Maximum number of functional principal components to use.
     - fpca_den_fam_pdf (R function): Estimated pdf function of the family.
     """
+    # import density estimation functions in r
+    robjects.r('''source('_r_density_estimation.r')''')
+    
     # Step 1: Convert all Python inputs to acceptible R inputs. 
     params = locals()
     params = {key: py2r(value) for key, value in params.items()}
@@ -179,6 +179,9 @@ def rde_testing_py(*, test_obs_at_t, method = "MLE", lower, training_results):
     Return:
     - The estimated cdf function.
     """
+    # import density estimation functions in r
+    robjects.r('''source('_r_density_estimation.r')''')
+    
     # Step 1: Convert all Python inputs to acceptible R inputs. 
     test_obs_at_t = py2r(test_obs_at_t)
     method = "FPCA_" + method
