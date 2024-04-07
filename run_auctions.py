@@ -3,7 +3,6 @@ import rpy2.robjects as robjects
 from _classes_auction import Auction, DOPAuction, RSOPAuction, RSKDEAuction, RSRDEAuction
 import dill
 from multiprocessing import Lock, Process
-from _run_auctions import run_auctions
 from _classes_initialization import OnlineAuctionRandomInitialization
 
 

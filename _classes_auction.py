@@ -15,6 +15,7 @@ class Auction:
     ideal_price: float = field(init = False)
     ideal_revenue: float = field(init = False)
     regret: float = field(init = False)
+    random_seed: Optional[int] = None
     training_history: InitVar[Optional[robjects.vectors.ListVector]] = None
 
     def __post_init__(self, training_history):

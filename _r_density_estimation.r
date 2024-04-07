@@ -139,10 +139,12 @@ rde_testing_r <- function(test_obs_at_t,
   #' - est_cdf (function): The estimated cdf function.
   ###
 
+  library(densityFPCA)
+
   # Handle training results.
-  fpca_res <- training_results["fpca_res"]
-  max_k <- training_results["max_k"]
-  fpca_den_fam_pdf <- training_results["fpca_den_fam_pdf"]
+  fpca_res <- training_results$fpca_res
+  max_k <- training_results$max_k
+  fpca_den_fam_pdf <- training_results$fpca_den_fam_pdf
 
   # Estimate using the induced family `fpca.den.fam`
   # 1) Estimation
