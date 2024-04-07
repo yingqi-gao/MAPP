@@ -1,7 +1,6 @@
 from _classes_initialization import OnlineAuctionRandomInitialization
 from _classes_auction import TrainingData, Auction, DOPAuction, RSOPAuction, RSKDEAuction, RSRDEAuction
 from math import floor
-import warnings
 import dill
 
 
@@ -19,7 +18,6 @@ def run_auctions(lock,
         sequence_auctions = []
         training_history = []
         for i in range(num_rounds): # Test: 110
-            print(i)
             auction_initialization = online_initialization.sequence_auctions[i]
 
             if pricing_mechanism == "DOP":
@@ -42,7 +40,7 @@ def run_auctions(lock,
                 else:
                     auction = None
                 
-                bids_list =  [*auction_initialization.bids.values()]
+                bids_list = [*auction_initialization.bids.values()]
                 training_data = TrainingData(observations = bids_list)
                 training_history.append(training_data)
             

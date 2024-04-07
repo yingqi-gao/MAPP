@@ -1,10 +1,8 @@
 # import os
-import rpy2.robjects as robjects
 # os.environ['R_HOME'] = '/u/home/y/yqg36/.conda/envs/rpy2-env/lib/R'
+import rpy2.robjects as robjects
 import functools
-
 import numpy
-
 import anndata2ri
 anndata2ri.activate()
 
@@ -181,7 +179,7 @@ def rde_testing_py(*, test_obs_at_t, method = "MLE", lower, training_results):
     """
     # import density estimation functions in r
     robjects.r('''source('_r_density_estimation.r')''')
-    
+
     # Step 1: Convert all Python inputs to acceptible R inputs. 
     test_obs_at_t = py2r(test_obs_at_t)
     method = "FPCA_" + method

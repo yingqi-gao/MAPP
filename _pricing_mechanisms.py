@@ -1,6 +1,5 @@
 from _pricing_utils import opt, dict_part, max_epc_rev
-from _py_density_estimation import kde_py, rde_py
-from functools import partial
+from _py_density_estimation import kde_py, rde_testing_py
 
 
 
@@ -26,7 +25,7 @@ def DOP(bids):
 
 
 
-def RSOP(bids, random_seed):
+def RSOP(bids, *, random_seed):
     """
     Runs a random sampling optimal price auction.
 
@@ -46,7 +45,7 @@ def RSOP(bids, random_seed):
 
 
 
-def RSKDE(bids, lower, upper, random_seed):
+def RSKDE(bids, *, lower, upper, random_seed):
     """
     Runs a random sampling kernel density estimation auction.
 
@@ -76,7 +75,7 @@ def RSKDE(bids, lower, upper, random_seed):
 
 
 
-def RSRDE(bids, lower, upper, random_seed, *, train_hist, train_bws, method = "MLE", grid_size = 1024):
+def RSRDE(bids, *, lower, upper, random_seed, method = "MLE", training_results):
     """
     Runs a random sampling repeated density estimation auction.
 
@@ -85,11 +84,8 @@ def RSRDE(bids, lower, upper, random_seed, *, train_hist, train_bws, method = "M
     - lower (float): Lower limit for bidder values and bids.
     - upper (float): Upper limit for bidder values and bids.
     - random_seed (int): A random seed for all pricing mechanisms to use the same partition.
-    Keyword Arguments
-    - train_hist (list[list[num]]): Training history, i.e., stored training observations. Each element is a numeric list storing training observations at round t.
-    - train_bws (list[num]): Bandwidths selected at each round for kernel density estimation.
     - method (str): A string specifying the method to use for calculating the estimated parameters ("MLE", "MAP", "BLUP", default: "MLE").
-    - grid_size (int): The number of grid points to generate for evaluating estimated density (default: 1024).
+    - training_results (R list): Results from training on the previous auctions.
 
     Returns:
     - Auction price (float).
@@ -99,9 +95,15 @@ def RSRDE(bids, lower, upper, random_seed, *, train_hist, train_bws, method = "M
     group1, group2 = dict_part(bids, random_seed)
 
     # Step 2: Estimate density within each group.
-    cdf1 = rde_py([*group1.values()], lower, upper, train_hist = train_hist, train_bws = train_bws, method = method, grid_size = grid_size)
-    cdf2 = rde_py([*group2.values()], lower, upper, train_hist = train_hist, train_bws = train_bws, method = method, grid_size = grid_size)
-
+    cdf1 = rde_testing_py(test_obs_at_t = [*group1.values()], 
+                          method = method,
+                          lower = lower,
+                          training_results = training_results)
+    cdf2 = rde_testing_py(test_obs_at_t = [*group2.values()], 
+                          method = method,
+                          lower = lower,
+                          training_results = training_results)
+    
     # Step 3: Find the optimal estimated price for each group.
     price1, rev1 = max_epc_rev(cdf1, lower, upper)
     price2, rev2 = max_epc_rev(cdf2, lower, upper)

@@ -7,10 +7,10 @@ from _classes_initialization import OnlineAuctionRandomInitialization
 
 def run_process(online_initialization: OnlineAuctionRandomInitialization, 
                 online_initialization_name: str):
-    pricing_mechanism_reference = ["DOP", "RSOP", "RSKDE", "RSRDE_MLE", "RSRDE_MAP", "RSRDE_BLUP"]
+    pricing_mechanism_reference = ["DOP", "RSOP", "RSKDE", "RSRDE_MLE"]
 
     sub_lock = Lock()
-    processes = [] # num_processes = 6
+    processes = [] # num_processes = 4
 
     for pricing_mechanism in pricing_mechanism_reference:
         params = {
