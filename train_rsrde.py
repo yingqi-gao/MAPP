@@ -22,7 +22,7 @@ def train_rsrde(lock,
             if auction_initialization.true_dist.lower != lower or auction_initialization.true_dist.upper != upper:
                 raise ValueError("The assumption of a common support is violated!")
 
-            if i == 0:
+            if i < 10:
                 training_results = None
             else:
                 training_results = rde_training_py(train_hist = history_training_data,
