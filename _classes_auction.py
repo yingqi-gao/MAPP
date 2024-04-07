@@ -72,11 +72,11 @@ class RSRDEAuction(Auction):
 
     def __post_init__(self, training_history):
         self.actual_price, self.estimated_cdfs = RSRDE(self.initialization.bids, 
-                                                  lower = self.initialization.true_dist.lower, 
-                                                  upper = self.initialization.true_dist.upper, 
-                                                  random_seed = self.random_seed,
-                                                  method = self.RSRDE_method,
-                                                  training_results = training_history)
+                                                       lower = self.initialization.true_dist.lower, 
+                                                       upper = self.initialization.true_dist.upper, 
+                                                       random_seed = self.random_seed,
+                                                       method = self.RSRDE_method,
+                                                       training_results = training_history)
         super().__post_init__(training_history)
 
 
