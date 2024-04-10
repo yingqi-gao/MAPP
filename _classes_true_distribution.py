@@ -14,18 +14,29 @@ class TrueDistribution:
      scipy_func: Callable
      params: dict[str, float] = field(init = False)
      cdf: Callable = field(init = False)
+     ideal_price: float = field(init = False)
+     ideal_revenue: float = field(init = False)
 
      def __post_init__(self):
           self.cdf = partial(self.scipy_func.cdf, **self.params)
+          self.ideal_price, self.ideal_revenue = max_epc_rev(self.cdf, lower = self.lower, upper = self.upper)
 
      def generate_bids(self, num_bidders: int) -> dict[str, float]:
-          return {f"bidder{i}": self.scipy_func.rvs(**self.params) for i in range(num_bidders)}
-     
-     def get_ideals(self) -> tuple[float, float]:
-          return max_epc_rev(self.cdf, lower = self.lower, upper = self.upper)
+          bids = {}
+          
+          for i in range(num_bidders):
+               bid = self.scipy_func.rvs(**self.params)
+               if bid < self.lower or bid > self.upper:
+                    raise ValueError("Bid generated outside the common support!")
+               bids[f"bidder{i}"] = bid
+
+          return bids
      
      def get_actual_revenue(self, actual_price: float) -> float:
-          return get_epc_rev(actual_price, value_cdf = self.cdf)
+          revenue = get_epc_rev(actual_price, value_cdf = self.cdf)
+          if revenue < 0:
+               raise ValueError("Revenue can never be negative!")
+          return revenue
           
      
      
@@ -47,9 +58,9 @@ class NormalDistribution(TrueDistribution):
      
      def __post_init__(self):
           if self.mean is None:
-               self.mean = random.uniform(1e-10, 2 * self.upper)
+               self.mean = random.uniform(0, 2 * self.upper)
           if self.sd is None:
-               self.sd = random.uniform(1e-10, self.upper)
+               self.sd = random.uniform(0, self.upper)
           self.params = {"a": (self.lower - self.mean) / self.sd,
                          "b": (self.upper - self.mean) / self.sd,
                          "loc": self.mean,
@@ -64,7 +75,7 @@ class ExponentialDistribution(TrueDistribution):
      
      def __post_init__(self):
           if self.scale is None:
-               self.scale = random.uniform(1e-10, self.upper)
+               self.scale = random.uniform(0, self.upper)
           self.params = {"b": (self.upper - self.lower) / self.scale,
                          "loc": self.lower,
                          "scale": self.scale}

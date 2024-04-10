@@ -101,9 +101,15 @@ def max_epc_rev(value_cdf, lower, upper):
     wrapped_get_epc_rev = partial(get_epc_rev, value_cdf = value_cdf)
 
     # Step 2: Maximization
-    results = scipy.optimize.minimize(lambda x: -wrapped_get_epc_rev(x), x0 = lower, method = "L-BFGS-B", bounds = ((lower, upper),))
+    results = scipy.optimize.minimize(lambda x: -wrapped_get_epc_rev(x), x0 = (lower,), method = "L-BFGS-B", bounds = ((lower, upper),))
+    price = results.x[0]
+    if price < lower or price > upper:
+        raise ValueError("Optimal price found outside the common support!")
+    revenue = -results.fun
+    if revenue < 0:
+        raise ValueError("Revenue can never be negative!")
 
     # Return
-    return results.x[0], -results.fun
+    return price, revenue 
 
 
