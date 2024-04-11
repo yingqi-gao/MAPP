@@ -69,9 +69,12 @@ def RSKDE(bids, *, lower, upper, random_seed):
     # Step 3: Find the optimal estimated price for each group.
     price1, rev1 = max_epc_rev(cdf1, lower, upper)
     price2, rev2 = max_epc_rev(cdf2, lower, upper)
-    
+
     # Return
-    return max(price1, price2), (cdf1, cdf2)
+    if price1 > price2:
+        return price1, cdf1
+    else:
+        return price2, cdf2
 
 
 
@@ -109,5 +112,8 @@ def RSRDE(bids, *, lower, upper, random_seed, method = "MLE", training_results):
     price2, rev2 = max_epc_rev(cdf2, lower, upper)
     
     # Return
-    return max(price1, price2), (cdf1, cdf2)
+    if price1 > price2:
+        return price1, cdf1
+    else:
+        return price2, cdf2
 

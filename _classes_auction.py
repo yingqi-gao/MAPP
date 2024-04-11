@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field, InitVar
-from _classes_initialization import AuctionInitialization
 from typing import Optional, Callable
+from initialize_auctions import AuctionInitialization
 from _pricing_mechanisms import DOP, RSOP, RSKDE, RSRDE
 import rpy2.robjects as robjects
 
@@ -10,17 +10,18 @@ import rpy2.robjects as robjects
 class Auction:
     initialization: AuctionInitialization
     pricing_mechanism: str
-    actual_price: float
-    actual_revenue: float = field(init = False)
+    random_seed: Optional[int] = None
     ideal_price: float = field(init = False)
     ideal_revenue: float = field(init = False)
+    actual_price: float = field(init = False)
+    actual_revenue: float = field(init = False)
     regret: float = field(init = False)
-    random_seed: Optional[int] = None
     training_history: InitVar[Optional[robjects.vectors.ListVector]] = None
 
     def __post_init__(self, training_history):
         self.actual_revenue = self.initialization.true_dist.get_actual_revenue(self.actual_price)
-        self.ideal_price, self.ideal_revenue = self.initialization.true_dist.get_ideals()
+        self.ideal_price = self.initialization.true_dist.ideal_price
+        self.ideal_revenue = self.initialization.true_dist.ideal_revenue
         self.regret = self.ideal_revenue - self.actual_revenue
         if self.regret < 0:
             raise ValueError("Regret can never be negative!")
@@ -29,7 +30,6 @@ class Auction:
 @dataclass
 class DOPAuction(Auction):
     pricing_mechanism: str = "DOP"
-    actual_price: float = field(init = False)
 
     def __post_init__(self, training_history):
         self.actual_price = DOP(self.initialization.bids)
@@ -40,7 +40,6 @@ class DOPAuction(Auction):
 class RSOPAuction(Auction):
     random_seed: int
     pricing_mechanism: str = "RSOP"
-    actual_price: float = field(init = False)
 
     def __post_init__(self, training_history):
         self.actual_price = RSOP(self.initialization.bids, random_seed = self.random_seed)
@@ -51,8 +50,7 @@ class RSOPAuction(Auction):
 class RSKDEAuction(Auction):
     random_seed: int
     pricing_mechanism: str = "RSKDE"
-    actual_price: float = field(init = False)
-    estimated_cdfs: tuple[Callable, Callable] = field(init = False)
+    estimated_cdfs: Callable = field(init = False)
 
     def __post_init__(self, training_history):
         self.actual_price, self.estimated_cdfs = RSKDE(self.initialization.bids, 
@@ -68,8 +66,7 @@ class RSRDEAuction(Auction):
     training_history: InitVar[robjects.vectors.ListVector]
     RSRDE_method: str = "MLE" # "MLE", "MAP", "BLUP"
     pricing_mechanism: str = "RSRDE"
-    actual_price: float = field(init = False)
-    estimated_cdfs: tuple[Callable, Callable] = field(init = False)
+    estimated_cdfs: Callable = field(init = False)
 
     def __post_init__(self, training_history):
         self.actual_price, self.estimated_cdfs = RSRDE(self.initialization.bids, 

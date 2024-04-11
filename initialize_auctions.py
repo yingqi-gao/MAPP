@@ -9,22 +9,13 @@ import dill
 class AuctionInitialization:
      true_dist: TrueDistribution
      num_bidders: int
-     bids_list: list[dict[str, float]] = field(init = False)
+     bids: dict[str, float] = field(init = False)
 
      def __post_init__(self):
-        bids_list = []
+        self.bids = self.true_dist.generate_bids(self.num_bidders)
+        if len(self.bids) != self.num_bidders:
+            raise ValueError("Number of bids per round not correct!")
 
-        for i in range(500):
-            random.seed(i)
-            bids = self.true_dist.generate_bids(self.num_bidders)
-            if len(bids) != self.num_bidders:
-                raise ValueError("Number of bids per round not correct!")
-            bids_list.append(bids)
-
-        if len(bids_list) != 500:
-            raise ValueError("Repetition of bids generations not correct!")
-        
-        self.bids_list = bids_list
 
 
 def get_initializations(dist_type: str, num_bidders: int, num_rounds = 200, lower = 1, upper = 10):
@@ -40,7 +31,7 @@ def get_initializations(dist_type: str, num_bidders: int, num_rounds = 200, lowe
                                      num_bidders = num_bidders)
         initializations.append(init)
 
-    if len(initializations) != 500:
+    if len(initializations) != num_rounds:
         raise ValueError("Repetition of auction initializations not correct!")
 
     return initializations
