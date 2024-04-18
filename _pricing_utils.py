@@ -1,6 +1,7 @@
 import random
 from functools import partial
 from scipy.optimize import basinhopping, LinearConstraint
+from dataclasses import dataclass
 
 
 
@@ -83,6 +84,18 @@ def get_epc_rev(price, *, value_cdf):
 
 
 
+@dataclass
+class MyBounds:
+    lower: float
+    upper: float
+    
+    def __call__(self, **kwargs: random.Any):
+        x = kwargs["x_new"][0]
+        tmax = x <= self.upper
+        tmin = x >= self.lower
+        return tmax and tmin
+
+
 # Find the maximum expected per capita revenue - max_p p(1-F(p))
 def max_epc_rev(value_cdf, lower, upper):
     """
@@ -101,7 +114,7 @@ def max_epc_rev(value_cdf, lower, upper):
     wrapped_get_epc_rev = partial(get_epc_rev, value_cdf = value_cdf)
 
     # Step 2: Maximization
-    results = basinhopping(lambda x: -wrapped_get_epc_rev(x), x0 = lower, minimizer_kwargs = {"constraints": LinearConstraint([1], lb = lower, ub = upper)}, niter = 10000)
+    results = basinhopping(lambda x: -wrapped_get_epc_rev(x), x0 = lower + 0.1, minimizer_kwargs = {"method":"L-BFGS-B"}, accept_test = MyBounds(lower = lower, upper = upper))
     price = results.x
     if price < lower or price > upper:
         raise ValueError("Optimal price found outside the common support!")

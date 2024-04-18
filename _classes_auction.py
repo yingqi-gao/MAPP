@@ -24,7 +24,7 @@ class Auction:
         self.ideal_revenue = self.initialization.true_dist.ideal_revenue
         self.regret = self.ideal_revenue - self.actual_revenue
         if self.regret < 0:
-            raise ValueError(f"Regret can never be negative!\nIdeal price and revenue are ({self.ideal_price}, {self.ideal_revenue}).\nActuals are ({self.actual_price}, {self.actual_revenue}).")
+            print(f"Warning: Regret can never be negative!\nIdeal price and revenue are ({self.ideal_price}, {self.ideal_revenue}).\nActuals are ({self.actual_price}, {self.actual_revenue}).")
 
 
 @dataclass

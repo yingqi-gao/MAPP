@@ -1,5 +1,3 @@
-# import os
-# os.environ['R_HOME'] = '/u/home/y/yqg36/.conda/envs/rpy2-env/lib/R'
 import rpy2.robjects as robjects
 import functools
 import numpy
