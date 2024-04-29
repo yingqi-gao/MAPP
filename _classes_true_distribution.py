@@ -125,8 +125,8 @@ class LognormalDistribution(TrueDistribution):
                self.mu = random.uniform(0, 2 * self.upper)
           if self.sigma is None:
                self.sigma = random.uniform(0, self.upper)
-          self.params = {"mu": self.mean,
-                         "sigma": self.sd,
+          self.params = {"mu": self.mu,
+                         "sigma": self.sigma,
                          "a": self.lower,
                          "b": self.upper}
           super().__post_init__()
