@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from _classes_true_distribution import TrueDistribution, UniformDistribution, NormalDistribution, ExponentialDistribution
+from _classes_true_distribution import TrueDistribution, UniformDistribution, NormalDistribution, ExponentialDistribution, ParetoDistribution, LognormalDistribution
 import random
 import dill
 
@@ -18,14 +18,26 @@ class AuctionInitialization:
 
 
 
-def get_initializations(dist_type: str, num_bidders: int, num_rounds = 200, lower = 1, upper = 10):
+def get_initializations(dist_type: str, 
+                        num_bidders_train: int, 
+                        num_bidders_test: int, 
+                        num_rounds_train: int,
+                        num_rounds = 200, 
+                        lower = 1, 
+                        upper = 10):
     initializations = []
     true_dist_reference = {"uniform": UniformDistribution,
                            "normal": NormalDistribution,
-                           "exponential": ExponentialDistribution}
+                           "exponential": ExponentialDistribution,
+                           "pareto": ParetoDistribution,
+                           "lognormal": LognormalDistribution}
     
     for i in range(num_rounds):
         random.seed(i)
+        if i < num_rounds_train:
+            num_bidders = num_bidders_train
+        else:
+            num_bidders = num_bidders_test
         init = AuctionInitialization(true_dist = true_dist_reference[dist_type](lower = lower, 
                                                                                 upper = upper),
                                      num_bidders = num_bidders)
@@ -39,13 +51,17 @@ def get_initializations(dist_type: str, num_bidders: int, num_rounds = 200, lowe
 
 
 def main():
-    for dist_type in ["uniform", "normal", "exponential"]:
-        for num_bidders in [10, 100, 1000, 10000]:
-            initializations = get_initializations(dist_type, num_bidders)
-            file_name = "_".join([dist_type, str(num_bidders)])
-            with open("data/inits/" + file_name + ".pkl", "wb") as file:
-                dill.dump(initializations, file)
-            print(f"All done with {file_name}!")
+    for dist_type in ["uniform", "normal", "exponential", "pareto", "lognormal"]:
+        for num_bidders_train in [100, 200]:
+            for num_rounds_train in [20, 50]:
+                initializations = get_initializations(dist_type = dist_type, 
+                                                      num_bidders_train = num_bidders_train,
+                                                      num_bidders_test = 10,
+                                                      num_rounds_train = num_rounds_train)
+                file_name = "_".join([dist_type, str(num_bidders_train), str(num_rounds_train)])
+                with open("data/inits/" + file_name + ".pkl", "wb") as file:
+                    dill.dump(initializations, file)
+                print(f"All done with {file_name}!")
 
 
 
