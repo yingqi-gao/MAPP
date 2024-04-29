@@ -102,7 +102,7 @@ def max_epc_rev(value_cdf, lower, upper):
     wrapped_get_epc_rev = partial(get_epc_rev, value_cdf = value_cdf)
 
     # Step 2: Maximization
-    results = minimize_scalar(lambda x: -wrapped_get_epc_rev(x), x0 = lower + 0.1, method='bounded', bounds = [(lower, upper)])
+    results = minimize_scalar(lambda x: -wrapped_get_epc_rev(x), method='bounded', bounds = [(lower, upper)])
     price = results.x
     if price < lower or price > upper:
         raise ValueError("Optimal price found outside the common support!")
