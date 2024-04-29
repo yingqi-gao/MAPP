@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from _classes_true_distribution import TrueDistribution, UniformDistribution, NormalDistribution, ExponentialDistribution, ParetoDistribution, LognormalDistribution
 import random
 import dill
+import sys
 
 
 
@@ -50,20 +51,33 @@ def get_initializations(dist_type: str,
 
 
 
-def main():
-    for dist_type in ["uniform", "normal", "exponential", "pareto", "lognormal"]:
-        for num_bidders_train in [100, 200]:
-            for num_rounds_train in [20, 50]:
-                initializations = get_initializations(dist_type = dist_type, 
-                                                      num_bidders_train = num_bidders_train,
-                                                      num_bidders_test = 10,
-                                                      num_rounds_train = num_rounds_train)
-                file_name = "_".join([dist_type, str(num_bidders_train), str(num_rounds_train)])
-                with open("data/inits/" + file_name + ".pkl", "wb") as file:
-                    dill.dump(initializations, file)
-                print(f"All done with {file_name}!")
+
+arg1 = sys.argv[1]
+arg2 = sys.argv[2]
+arg3 = sys.argv[3]
+initializations = get_initializations(dist_type = arg1, 
+                                      num_bidders_train = int(arg2),
+                                      num_bidders_test = 10,
+                                      num_rounds_train = int(arg3))
+file_name = "_".join([arg1, str(arg2), str(arg3)])
+with open("data/inits/" + file_name + ".pkl", "wb") as file:
+       dill.dump(initializations, file)
+print(f"All done with {file_name}!")
+
+# def main():
+#     for dist_type in ["uniform", "normal", "exponential", "pareto", "lognormal"]:
+#         for num_bidders_train in [100, 200]:
+#             for num_rounds_train in [20, 50]:
+#                 initializations = get_initializations(dist_type = dist_type, 
+#                                                       num_bidders_train = num_bidders_train,
+#                                                       num_bidders_test = 10,
+#                                                       num_rounds_train = num_rounds_train)
+#                 file_name = "_".join([dist_type, str(num_bidders_train), str(num_rounds_train)])
+#                 with open("data/inits/" + file_name + ".pkl", "wb") as file:
+#                     dill.dump(initializations, file)
+#                 print(f"All done with {file_name}!")
 
 
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
