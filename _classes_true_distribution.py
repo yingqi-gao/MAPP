@@ -31,7 +31,7 @@ class TrueDistribution:
           bids = {}
           for i in range(num_bidders):
                if self.dist_type == "lognormal":
-                    bids = self.sample_func(**self.params)
+                    bid = self.sample_func(**self.params)
                else:
                     bid = self.scipy_func.rvs(**self.params)
                if bid < self.lower or bid > self.upper:
