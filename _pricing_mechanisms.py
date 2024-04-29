@@ -1,5 +1,6 @@
 from _pricing_utils import opt, dict_part, max_epc_rev
 from _py_density_estimation import kde_py, rde_testing_py
+import numpy as np
 
 
 
@@ -113,7 +114,7 @@ def RSRDE(bids, *, lower, upper, random_seed, method = "MLE", training_results):
     
     # Return
     if price1 > price2:
-        return price1, cdf1
+        return price1, np.array([cdf1(x) for x in np.linspace(lower, upper, num = 1024)])
     else:
-        return price2, cdf2
+        return price2, np.array([cdf2(x) for x in np.linspace(lower, upper, num = 1024)])
 

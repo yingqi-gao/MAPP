@@ -91,6 +91,7 @@ def get_bw(obs_at_t):
     Return:
     - Bandwidth selected for kernel density estimation based on observations at round t.
     """
+    robjects.r('''options(warn=-1)''')
     # Step 1: Convert the Python list to an R object
     obs_at_t = py2r(obs_at_t)
 

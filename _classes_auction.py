@@ -3,6 +3,7 @@ from typing import Optional, Callable
 from initialize_auctions import AuctionInitialization
 from _pricing_mechanisms import DOP, RSOP, RSKDE, RSRDE
 import rpy2.robjects as robjects
+import numpy as np
 
 
 
@@ -66,7 +67,7 @@ class RSRDEAuction(Auction):
     training_history: InitVar[robjects.vectors.ListVector]
     RSRDE_method: str = "MLE" # "MLE", "MAP", "BLUP"
     pricing_mechanism: str = "RSRDE"
-    estimated_cdfs: Callable = field(init = False)
+    estimated_cdfs: np.ndarray = field(init = False)
 
     def __post_init__(self, training_history):
         self.actual_price, self.estimated_cdfs = RSRDE(self.initialization.bids, 

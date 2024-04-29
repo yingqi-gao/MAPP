@@ -12,6 +12,7 @@ kde_r <- function(test_obs_at_t, lower, upper) {
   #' Return:
   #' The estimated cdf function.
   ###
+  options(warn=-1)
   library(spatstat)
 
   return(CDF(density(test_obs_at_t,
@@ -46,7 +47,7 @@ rde_training_r <- function(train_hist,
   #' - max_k (int): Maximum number of functional principal components to use.
   #' - fpca_den_fam_pdf (function): Estimated pdf function of the family.
   ###
-
+  options(warn=-1)
   library(densityFPCA)
 
 
@@ -138,7 +139,7 @@ rde_testing_r <- function(test_obs_at_t,
   #' Return:
   #' - est_cdf (function): The estimated cdf function.
   ###
-
+  options(warn=-1)
   library(densityFPCA)
 
   # Handle training results.

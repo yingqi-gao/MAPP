@@ -1,7 +1,7 @@
 import random
 from functools import partial
-from scipy.optimize import basinhopping, LinearConstraint
-from dataclasses import dataclass
+from scipy.optimize import basinhopping, NonlinearConstraint
+import numpy as np
 
 
 
@@ -84,16 +84,21 @@ def get_epc_rev(price, *, value_cdf):
 
 
 
-@dataclass
-class MyBounds:
-    lower: float
-    upper: float
-    
-    def __call__(self, **kwargs: random.Any):
-        x = kwargs["x_new"][0]
-        tmax = x <= self.upper
-        tmin = x >= self.lower
-        return tmax and tmin
+class RandomDisplacementBounds(object):
+    """random displacement with bounds"""
+    def __init__(self, xmin, xmax, stepsize=0.5):
+        self.xmin = xmin
+        self.xmax = xmax
+        self.stepsize = stepsize
+
+    def __call__(self, x):
+        """take a random step but ensure the new position is within the bounds"""
+        while True:
+            # this could be done in a much more clever way, but it will work for example purposes
+            xnew = x + np.random.uniform(-self.stepsize, self.stepsize, np.shape(x))
+            if np.all(xnew < self.xmax) and np.all(xnew > self.xmin):
+                break
+        return xnew
 
 
 # Find the maximum expected per capita revenue - max_p p(1-F(p))
@@ -114,7 +119,7 @@ def max_epc_rev(value_cdf, lower, upper):
     wrapped_get_epc_rev = partial(get_epc_rev, value_cdf = value_cdf)
 
     # Step 2: Maximization
-    results = basinhopping(lambda x: -wrapped_get_epc_rev(x), x0 = lower + 0.1, minimizer_kwargs = {"method":"L-BFGS-B"}, accept_test = MyBounds(lower = lower, upper = upper))
+    results = basinhopping(lambda x: -wrapped_get_epc_rev(x), x0 = lower + 0.1, minimizer_kwargs = {"method": "L-BFGS-B","bounds": [(lower, upper)]}, take_step = RandomDisplacementBounds(lower, upper))
     price = results.x
     if price < lower or price > upper:
         raise ValueError("Optimal price found outside the common support!")
