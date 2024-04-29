@@ -121,10 +121,10 @@ class LognormalDistribution(TrueDistribution):
      sigma: Optional[float] = None
      
      def __post_init__(self):
-          if self.mean is None:
-               self.mean = random.uniform(0, 2 * self.upper)
-          if self.sd is None:
-               self.sd = random.uniform(0, self.upper)
+          if self.mu is None:
+               self.mu = random.uniform(0, 2 * self.upper)
+          if self.sigma is None:
+               self.sigma = random.uniform(0, self.upper)
           self.params = {"mu": self.mean,
                          "sigma": self.sd,
                          "a": self.lower,
