@@ -7,6 +7,7 @@ from _py_density_estimation import get_bw, rde_training_py
 
 
 def train_rsrde(initializations_name: str):
+    num_rounds_train = int(initializations_name.split("_")[2])
     with open("data/inits/" + initializations_name + ".pkl", "rb") as file:
         initializations = dill.load(file)
     num_rounds = len(initializations)
@@ -22,7 +23,7 @@ def train_rsrde(initializations_name: str):
         if init.true_dist.lower != lower or init.true_dist.upper != upper:
             raise ValueError("The assumption of a common support is violated!")
 
-        if i < 20:
+        if i < num_rounds_train:
             training_results = None
         else:
             training_results = rde_training_py(train_hist = history_training_data,
