@@ -4,8 +4,7 @@ from functools import partial
 from _pricing_utils import max_epc_rev, get_epc_rev
 import scipy
 import random
-from _truncated_lognormal import log_normal_truncated_ab_cdf, log_normal_truncated_ab_sample
-
+import numpy as np
 
 
 @dataclass
@@ -21,19 +20,13 @@ class TrueDistribution:
      ideal_revenue: float = field(init = False)
 
      def __post_init__(self):
-          if self.dist_type == "lognormal":
-               self.cdf = partial(self.scipy_func, **self.params)
-          else:
-               self.cdf = partial(self.scipy_func.cdf, **self.params)
+          self.cdf = partial(self.scipy_func.cdf, **self.params)
           self.ideal_price, self.ideal_revenue = max_epc_rev(self.cdf, lower = self.lower, upper = self.upper)
 
      def generate_bids(self, num_bidders: int) -> dict[str, float]:
           bids = {}
           for i in range(num_bidders):
-               if self.dist_type == "lognormal":
-                    bid = self.sample_func(**self.params)
-               else:
-                    bid = self.scipy_func.rvs(**self.params)
+               bid = self.scipy_func.rvs(**self.params)
                if bid < self.lower or bid > self.upper:
                     raise ValueError("Bid generated outside the common support!")
                bids[f"bidder{i}"] = bid
@@ -111,22 +104,3 @@ class ParetoDistribution(TrueDistribution):
                          "scale": self.scale}
           super().__post_init__()
 
-
-@dataclass
-class LognormalDistribution(TrueDistribution):
-     dist_type: str = "lognormal"
-     scipy_func: Callable = log_normal_truncated_ab_cdf
-     sample_func: Callable = log_normal_truncated_ab_sample
-     mu: Optional[float] = None
-     sigma: Optional[float] = None
-     
-     def __post_init__(self):
-          if self.mu is None:
-               self.mu = random.uniform(0, 2 * self.upper)
-          if self.sigma is None:
-               self.sigma = random.uniform(0, self.upper)
-          self.params = {"mu": self.mu,
-                         "sigma": self.sigma,
-                         "a": self.lower,
-                         "b": self.upper}
-          super().__post_init__()
