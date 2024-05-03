@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from _classes_true_distribution import TrueDistribution, UniformDistribution, NormalDistribution, ExponentialDistribution, ParetoDistribution, LognormalDistribution
+from _classes_true_distribution import TrueDistribution, UniformDistribution, NormalDistribution, ExponentialDistribution, ParetoDistribution
 import random
 import dill
 import sys
@@ -30,8 +30,7 @@ def get_initializations(dist_type: str,
     true_dist_reference = {"uniform": UniformDistribution,
                            "normal": NormalDistribution,
                            "exponential": ExponentialDistribution,
-                           "pareto": ParetoDistribution,
-                           "lognormal": LognormalDistribution}
+                           "pareto": ParetoDistribution}
     
     for i in range(num_rounds):
         random.seed(i)
@@ -49,20 +48,18 @@ def get_initializations(dist_type: str,
 
     return initializations
 
-
-
-
-arg1 = sys.argv[1]
-arg2 = sys.argv[2]
-arg3 = sys.argv[3]
-initializations = get_initializations(dist_type = arg1, 
-                                      num_bidders_train = int(arg2),
-                                      num_bidders_test = 10,
-                                      num_rounds_train = int(arg3))
-file_name = "_".join([arg1, str(arg2), str(arg3)])
-with open("data/inits/" + file_name + ".pkl", "wb") as file:
-       dill.dump(initializations, file)
-print(f"All done with {file_name}!")
+def main():
+    arg1 = sys.argv[1]
+    arg2 = sys.argv[2]
+    arg3 = sys.argv[3]
+    initializations = get_initializations(dist_type = arg1, 
+                                          num_bidders_train = int(arg2),
+                                          num_bidders_test = 10,
+                                          num_rounds_train = int(arg3))
+    file_name = "_".join([arg1, str(arg2), str(arg3)])
+    with open("data/inits/" + file_name + ".pkl", "wb") as file:
+        dill.dump(initializations, file)
+    print(f"All done with {file_name}!")
 
 # def main():
 #     for dist_type in ["uniform", "normal", "exponential", "pareto", "lognormal"]:
@@ -79,5 +76,5 @@ print(f"All done with {file_name}!")
 
 
 
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()

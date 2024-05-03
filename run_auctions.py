@@ -1,5 +1,5 @@
 import os
-os.environ['R_HOME'] = '/u/home/y/yqg36/.conda/envs/rpy2-env/lib/R'
+# os.environ['R_HOME'] = '/u/home/y/yqg36/.conda/envs/rpy2-env/lib/R'
 from _classes_auction import Auction, DOPAuction, RSOPAuction, RSKDEAuction, RSRDEAuction
 import dill
 import gc
@@ -103,8 +103,11 @@ def run_auctions(initializations_name: str, pricing_mechanism: str, is_continue:
     gc.collect()
 
 
+def main():
+    arg1 = sys.argv[1]
+    arg2 = sys.argv[2]
+    arg3 = sys.argv[3]
+    run_auctions(arg1, arg2, arg3)
 
-arg1 = sys.argv[1]
-arg2 = sys.argv[2]
-arg3 = sys.argv[3]
-run_auctions(arg1, arg2, arg3)
+if __name__ == "__main__":
+    main()

@@ -1,5 +1,5 @@
 import os
-os.environ['R_HOME'] = '/u/home/y/yqg36/.conda/envs/rpy2-env/lib/R'
+# os.environ['R_HOME'] = '/u/home/y/yqg36/.conda/envs/rpy2-env/lib/R'
 import dill
 import sys
 from _py_density_estimation import get_bw, rde_training_py
@@ -47,5 +47,9 @@ def train_rsrde(initializations_name: str):
     print(f"All done with RSRDE training on {initializations_name}!")
 
 
-arg = sys.argv[1]
-train_rsrde(arg)
+def main():
+    arg = sys.argv[1]
+    train_rsrde(arg)
+
+if __name__ == "__main__":
+    main()
