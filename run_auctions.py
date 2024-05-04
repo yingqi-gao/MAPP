@@ -78,10 +78,11 @@ def run_auctions(initializations_name: str, pricing_mechanism: str, is_continue:
     elif pricing_mechanism == "RSRDE":
         with open("data/RSRDE_training/" + initializations_name + "_RSRDE_training.pkl", "rb") as file:
             training_results = dill.load(file)
+        num_train_rounds = int(initializations_name.split("_")[2])
+        training_history = training_results[num_train_rounds]
         for i in rounds_to_run:
             init = initializations[i]
-            training_history = training_results[i]
-            if training_history is None:
+            if i < num_train_rounds:
                 RSRDE_auctions = None
             else:
                 RSRDE_auctions = []
