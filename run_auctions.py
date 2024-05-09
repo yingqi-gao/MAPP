@@ -1,9 +1,10 @@
 import os
-# os.environ['R_HOME'] = '/u/home/y/yqg36/.conda/envs/rpy2-env/lib/R'
+os.environ['R_HOME'] = '/u/home/y/yqg36/.conda/envs/rpy2-env/lib/R'
 from _classes_auction import Auction, DOPAuction, RSOPAuction, RSKDEAuction, RSRDEAuction
 import dill
 import gc
 import sys
+import time
 import numpy as np
 
 
@@ -104,11 +105,14 @@ def run_auctions(initializations_name: str, pricing_mechanism: str, is_continue:
     gc.collect()
 
 
+
 def main():
+    t_start = time.time()
     arg1 = sys.argv[1]
     arg2 = sys.argv[2]
     arg3 = sys.argv[3]
     run_auctions(arg1, arg2, arg3)
+    print(f"It took {time.time() - t_start} seconds.")
 
 if __name__ == "__main__":
     main()

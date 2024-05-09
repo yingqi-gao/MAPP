@@ -1,55 +1,61 @@
 import os
-# os.environ['R_HOME'] = '/u/home/y/yqg36/.conda/envs/rpy2-env/lib/R'
-import dill
+os.environ['R_HOME'] = '/u/home/y/yqg36/.conda/envs/rpy2-env/lib/R'
+import pickle
 import sys
+import gc
+import time
 from _py_density_estimation import get_bw, rde_training_py
 
 
 
-def train_rsrde(initializations_name: str):
-    num_rounds_train = int(initializations_name.split("_")[2])
-    with open("data/inits/" + initializations_name + ".pkl", "rb") as file:
-        initializations = dill.load(file)
-    num_rounds = len(initializations)
-    lower = initializations[0].true_dist.lower
-    upper = initializations[0].true_dist.upper
+def train_rsrde(dist_type: str,
+                repetition_no: str,
+                num_training_bids: int):
+    with open("data/sim/" + dist_type + "/train_bids_" + dist_type + "_rep" + repetition_no + ".pkl", "rb") as file:
+        training_bids = pickle.load(file)
 
     history_training_data = []
     history_training_bandwidths = []
     history_training_results = []
 
-    for i in range(num_rounds):
-        init = initializations[i]
-        if init.true_dist.lower != lower or init.true_dist.upper != upper:
-            raise ValueError("The assumption of a common support is violated!")
-
-        if i < num_rounds_train:
-            training_results = None
+    file_name = "data/sim/" + dist_type + "/train_results_" + dist_type + "_rep" + repetition_no + "_" + str(num_training_bids) + "bids.pkl"
+    for t in range(100):
+        if t < 20:
+            pass
         else:
             training_results = rde_training_py(train_hist = history_training_data,
-                                                train_bws = history_training_bandwidths,
-                                                lower = lower,
-                                                upper = upper)
-        history_training_results.append(training_results)
-            
-        bids = [*init.bids.values()]
+                                               train_bws = history_training_bandwidths,
+                                               lower = 1, upper = 10)
+            history_training_results.append(training_results)
+        
+        training_bids_at_t = [*training_bids[t].values()]
+        bids = training_bids_at_t[:num_training_bids]
         bandwidth = get_bw(bids)
         history_training_data.append(bids)
         history_training_bandwidths.append(bandwidth)
-    
-        if i % 10 == 9:
-            file_name = "data/RSRDE_training/" + initializations_name + "_RSRDE_training.pkl"
+
+        if t == 20:
             with open(file_name, "wb") as file:
-                dill.dump(history_training_results, file)
-            print(f"Round {i + 1} of {file_name} done!")
+                pickle.dump(history_training_results, file)
+            gc.collect()
+        elif t > 20:
+            with open(file_name, "ab") as file:
+                pickle.dump(history_training_results, file)
+            gc.collect()
+        print(f"Done with round {t + 1} of {dist_type} with {num_training_bids} bids per round - Repetition No.{repetition_no}!")
 
     print("--------------------")
-    print(f"All done with RSRDE training on {initializations_name}!")
+    print(f"All done with RSRDE training on {dist_type} with {num_training_bids} bids per round - Repetition No.{repetition_no}!")
+
 
 
 def main():
-    arg = sys.argv[1]
-    train_rsrde(arg)
-
+    dist_type = sys.argv[1]
+    repetition_no = sys.argv[2]
+    num_training_bids = int(sys.argv[3])
+    t_start = time.time()
+    train_rsrde(dist_type = dist_type, repetition_no = repetition_no, num_training_bids = num_training_bids)    
+    print(f"It took {time.time() - t_start} seconds.")
+    
 if __name__ == "__main__":
     main()
