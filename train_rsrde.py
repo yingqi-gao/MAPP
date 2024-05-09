@@ -2,8 +2,6 @@ import os
 os.environ['R_HOME'] = '/u/home/y/yqg36/.conda/envs/rpy2-env/lib/R'
 import pickle
 import sys
-import gc
-import time
 from _py_density_estimation import get_bw, rde_training_py
 
 
@@ -34,14 +32,8 @@ def train_rsrde(dist_type: str,
         history_training_data.append(bids)
         history_training_bandwidths.append(bandwidth)
 
-        if t == 20:
-            with open(file_name, "wb") as file:
-                pickle.dump(history_training_results, file)
-            gc.collect()
-        elif t > 20:
-            with open(file_name, "ab") as file:
-                pickle.dump(history_training_results, file)
-            gc.collect()
+        with open(file_name, "wb") as file:
+            pickle.dump(history_training_results, file)
         print(f"Done with round {t + 1} of {dist_type} with {num_training_bids} bids per round - Repetition No.{repetition_no}!")
 
     print("--------------------")
@@ -53,9 +45,7 @@ def main():
     dist_type = sys.argv[1]
     repetition_no = sys.argv[2]
     num_training_bids = int(sys.argv[3])
-    t_start = time.time()
     train_rsrde(dist_type = dist_type, repetition_no = repetition_no, num_training_bids = num_training_bids)    
-    print(f"It took {time.time() - t_start} seconds.")
     
 if __name__ == "__main__":
     main()
