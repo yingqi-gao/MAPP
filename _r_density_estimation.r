@@ -1,68 +1,213 @@
-# Get cdf of kde
-kde_r <- function(test_obs_at_t, lower, upper) {
-  ###
-  #' Kernel density estimation at round t.
-  #'
-  #' Parameters:
-  #' - test_obs_at_t (num vec): Test observations received at round t, i.e.,
-  #'                            observations for estimating current density.
-  #' - lower (num): Lower support of all densities.
-  #' - upper (num): Upper support of all densities.
-  #'
-  #' Return:
-  #' The estimated cdf function.
-  ###
-  options(warn=-1)
-  library(spatstat)
+#' Title: PDF and CDF Construction Function
+#'
+#' Description:
+#' This function constructs the Probability Density Function (PDF) and
+#' the corresponding Cumulative Distribution Function (CDF) for given
+#' density estimates at points within a grid.
+#' It returns both the PDF and CDF as linearly interpolating functions
+#' that can be evaluated at arbitrary points.
+#'
+#' @param grid A numeric vector of equally spaced points at which the density
+#'             was estimated.
+#' @param mat_pdf A matrix where each row contains the density estimates
+#'                at given grid points for each sample.
+#' @return A list of sublists.
+#' The length of the outer list is equal to the number of rows in `mat_pdf`.
+#' Each sublist contains two funtions:
+#' \describe{
+#'   \item{pdf}{The PDF to be evaluated at any point.}
+#'   \item{cdf}{The CDF to be evaluated at any point.}
+#' }
+#' @example
+#' # Generate a random grid
+#' grid <- seq(-1, 1, length.out = 1024)
+#'
+#' # Generate a random matrix of density estimates
+#' mat_pdf <- matrix(c(sapply(grid, dunif, min = -1, max = 1),
+#'                     sapply(grid, dnorm)),
+#'                   nrow = 2, byrow = TRUE)
+#'
+#' # Run the function
+#' results <- pdfs_cdfs(grid, mat_pdf)
+#'
+#' # Test if the results are as expected
+#' results[[1]]$pdf(0.32)
+#' dunif(0.32, min = -1, max = 1)
+#' results[[1]]$cdf(0.32)
+#' punif(0.32, min = -1, max = 1)
+#'
+#' results[[2]]$pdf(0.32)
+#' dnorm(0.32)
+#' results[[2]]$cdf(0.32)
+#' pnorm(0.32)
+pdfs_cdfs <- function(grid, mat_pdf) {
+  results <- list()
 
-  return(CDF(density(test_obs_at_t,
-                     bw = "SJ",
-                     from = lower,
-                     to = upper)))
+  for (i in seq_len(nrow(mat_pdf))) {
+    # Step 1: Compute the (linearly interpolated) PDF using stats::approxfun(
+    pdf <- approxfun(grid, mat_pdf[i, ])
+
+    # Step 2: Compute the CDF by cumulatively summing the density estimates
+    cdf_est <- cumsum(mat_pdf[i, ] * c(0, diff(grid)))
+    cdf_est <- cdf_est / tail(cdf_est, n = 1) # normalization
+    cdf <- approxfun(grid, cdf_est)
+
+    # Append the list of two functions to the overall list
+    results[[i]] <- list(pdf = pdf, cdf = cdf)
+  }
+
+  # Return the nested list
+  return(results)
 }
 
 
 
-# Get cdf of rde (repeated density estimation)
-# 1. Training
-rde_training_r <- function(train_hist,
-                           train_bws,
-                           lower,
-                           upper,
-                           grid_size) {
-  ###
-  #' Learns the density family from training data.
-  #'
-  #' Parameters:
-  #' - train_hist (list of num vectors): Training history, i.e.,
-  #'                                     stored training observations.
-  #' - train_bws (num vec): Bandwidths selected for each training vector.
-  #' - lower (num): Lower bound of the common support of all densities.
-  #' - upper (num): Upper support of the common support of all densities.
-  #' - grid_size (int): Number of grid points to use
-  #'                    for evaluating estimated density.
-  #'
-  #' Return: A list of
-  #' - fpca_res (list): Results of principal principal components analysis.
-  #' - max_k (int): Maximum number of functional principal components to use.
-  #' - fpca_den_fam_pdf (function): Estimated pdf function of the family.
-  ###
-  options(warn=-1)
-  library(densityFPCA)
-
-
-  # Step 1: Generate grid points used for evaluating estimated density
+#' Title: KDE in R
+#'
+#' Description:
+#' This function computes the Probability Density Function (PDF) and
+#' the corresponding Cumulative Distribution Function (CDF) using
+#' the Kernel Density Estimation (KDE) method for given numerical dataset(s).
+#' It returns both the PDF and CDF as linearly interpolating functions
+#' that can be evaluated at arbitrary points.
+#'
+#' @param samples A matrix or list of samples of observations, where each row of
+#'                the matrix or element of the list is a sample for which the
+#'                PDF and CDF will be computed.
+#' @param lower A numeric value specifying the lower bound of the support for
+#'              all densities.
+#' @param upper A numeric value specifying the upper bound of the support for
+#'              all densities.
+#' @param grid_size The number of equally spaced points at which the densties
+#'                  are to be estimated.
+#' @return A list of sublists.
+#' The length of the outer list is equal to the length of `samples`.
+#' Each sublist contains two funtions:
+#' \describe{
+#'   \item{pdf}{The PDF to be evaluated at any point.}
+#'   \item{cdf}{The CDF to be evaluated at any point.}
+#' }
+#' @example
+#' # Generate a random matrix of samples
+#' samples <- matrix(c(runif(100, -1, 1), rnorm(100)), nrow = 2, byrow = TRUE)
+#'
+#' # Set other parameters
+#' lower <- -1
+#' upper <- 1
+#' grid_size <- 1024
+#'
+#' # Run the function
+#' results <- kde_r(samples, lower, upper, grid_size)
+#'
+#' # Test if the results are as expected
+#' results[[1]]$pdf(0.32)
+#' dunif(0.32, min = -1, max = 1)
+#' results[[1]]$cdf(0.32)
+#' punif(0.32, min = -1, max = 1)
+#'
+#' results[[2]]$pdf(0.32)
+#' dnorm(0.32)
+#' results[[2]]$cdf(0.32)
+#' pnorm(0.32)
+kde_r <- function(samples, lower, upper, grid_size) {
+  # Step 1: Set up a grid to be used for density estimation and interpolation
   grid <- seq(lower, upper, length.out = grid_size)
 
+  # Step 2: Compute the kernel density estimated values at the grid
+  kde <- preSmooth.kde(
+    obsv = samples,
+    grid = grid,
+    kde.opt = list(
+      bw = "sj",
+      kernel = "g",
+      from = lower,
+      to = upper
+    )
+  )
 
-  # Step 2: Use pre-smoothing to turn discrete observations
-  #                              into density functions
-  # 1) Get bandwidth
-  bw <- quantile(train_bws, 0.5)
+  # Step 3: Compute the PDF and CDF using the helper function pdfs_cdfs
+  results <- pdfs_cdfs(grid, kde)
 
-  # 2) Pre-smooth
-  train_sample <- preSmooth.kde(
-    obsv = train_hist,
+  # Return the nested list returned by pdfs_cdfs
+  return(results)
+}
+
+
+
+#' Title: RDE in R
+#'
+#' Description:
+#' This function computes the Probability Density Function (PDF) and
+#' the corresponding Cumulative Distribution Function (CDF) using
+#' the Repeated Density Estimation (KDE) method from Qiu et al. (2022)
+#' for a given numerical dataset.
+#' It returns both the PDF and CDF as linearly interpolating functions
+#' that can be evaluated at arbitrary points.
+#'
+#' @param train_samples A matrix or list of training samples of observations
+#'                      from which the approximating exponential family will be
+#'                      learned. Each row of the matrix or element of the list
+#'                      is a training sample.
+#' @param test_samples A matrix or list of test samples of observations, where
+#'                     each row of the matrix or element of the list is a
+#'                     test sample for which the PDF and CDF will be computed.
+#' @param lower A numeric value specifying the lower bound of the support for
+#'              all densities.
+#' @param upper A numeric value specifying the upper bound of the support for
+#'              all densities.
+#' @param grid_size The number of equally spaced points at which the densties
+#'                  are to be estimated.
+#' @param max_k The maximum number of dimensions the appoximating exponential
+#'              family is expected to have.
+#' @param method The method to be used for RDE. Options include "FPCA_BLUP",
+#'               "FPCA_MAP", and "FPCA_MLE". The default is "FPCA_MLE".
+#' @return A list of sublists.
+#' The length of the outer list is equal to the length of `test_samples`.
+#' Each sublist contains two funtions:
+#' \describe{
+#'   \item{pdf}{The PDF to be evaluated at any point.}
+#'   \item{cdf}{The CDF to be evaluated at any point.}
+#' }
+#' @example
+#' # Generate training samples
+#' train_samples <- t(replicate(50, extraDistr::rtnorm(200, a = -1, b = 1,
+#'                                                     mean = runif(1, -1, 1),
+#'                                                     sd = runif(1, 0, 2))))
+#'
+#' # Generate test samples
+#' test_samples <- t(replicate(200, extraDistr::rtnorm(10, a = -1, b = 1,
+#'                                                     mean = runif(1, -1, 1),
+#'                                                     sd = runif(1, 0, 2))))
+#'
+#' # Set other parameters
+#' lower <- -1
+#' upper <- 1
+#' grid_size <- 1024
+#' max_k <- 10
+#'
+#' # Run the function
+#' results <- rde_r(train_samples, test_samples, lower, upper, grid_size, max_k)
+#'
+#' # Test if the results are as expected
+#' results[[sample.int(200, 1)]]$pdf(0.32)
+#' results[[sample.int(200, 1)]]$cdf(0.32)
+rde_r <- function(train_samples,
+                  test_samples,
+                  lower,
+                  upper,
+                  grid_size,
+                  max_k,
+                  method = "FPCA_MLE") {
+  # Step 1: Set up a grid to be used for density estimation and interpolation
+  grid <- seq(lower, upper, length.out = grid_size)
+
+  # Step 2: Use pre-smoothing to turn discrete observations into densities
+  # 2.1: Get bandwidth
+  bw <- quantile(apply(train_samples, 1, bw.SJ), 0.5)
+
+  # 2.2: Pre-smooth using KDE
+  presmoothed_train_sample <- preSmooth.kde(
+    obsv = train_samples,
     grid = grid,
     kde.opt = list(
       bw = bw,
@@ -72,23 +217,20 @@ rde_training_r <- function(train_hist,
     )
   )
 
-
   # Step 3: Transform the density functions into Hilbert space
   #         via centered log transformation (centered log-ratio)
-  # 1) Calculate the constant to use for centering
-  tm_c <- normL2(rep(1, grid_size), grid = grid) ^ 2
+  # 3.1: Calculate the constant to be used for centering
+  tm_c <- normL2(rep(1, grid_size), grid = grid)^2
 
-  # 2) Transform into Hilbert space
-  ls_tm <- toHilbert(
-    train_sample,
+  # 3.2: Transform into Hilbert space
+  train_curve <- toHilbert(
+    presmoothed_train_sample,
     grid = grid,
     transFun = function(f, grid) orthLog(f, grid, against = 1 / tm_c),
     eps = .Machine$double.eps^(1 / 2)
-  )
-  train_curve <- ls_tm$mat.curve
+  )$mat.curve
 
-
-  # Step 4: Functional principal component analysis
+  # Step 4: Perform the functional principal component analysis (FPCA)
   fpca_res <- do.call(
     fdapace::FPCA,
     list(
@@ -105,54 +247,17 @@ rde_training_r <- function(train_hist,
     )
   )
 
-
   # Step 5: Construct the induced approximating exponential family
-  max_k <- 10
   fpca_den_fam <- fpca2DenFam(fpca_res, control = list(num.k = max_k))
+  # Numeric checks:
   # checkDenFamNumeric(fpca.den.fam)
   # checkDenFamGrident(fpca.den.fam)
 
-
-  # Return
-  return(list(fpca_res = fpca_res,
-              max_k = max_k,
-              fpca_den_fam_pdf = fpca_den_fam$pdf))
-}
-
-
-# 2. Testing
-rde_testing_r <- function(test_obs_at_t,
-                          method,
-                          lower,
-                          training_results) {
-  ###
-  #' Estimates cdf from induced density family using new observations.
-  #'
-  #' Parameters:
-  #' - test_obs_at_t (num vec): Test observations received at round t, i.e.,
-  #'                            observations to estimate density of.
-  #' - method (cha): Method to use for calculating the estimated parameters
-  #'                 ("FPCA_MLE", "FPCA_MAP", "FPCA_BLUP").
-  #' - lower (num): Lower bound of the common support of all densities.
-  #' - training_results (list): Results from rde_training_r.
-  #'
-  #' Return:
-  #' - est_cdf (function): The estimated cdf function.
-  ###
-  options(warn=-1)
-  library(densityFPCA)
-
-  # Handle training results.
-  fpca_res <- training_results$fpca_res
-  max_k <- training_results$max_k
-  fpca_den_fam_pdf <- training_results$fpca_den_fam_pdf
-
-  # Estimate using the induced family `fpca.den.fam`
-  # 1) Estimation
+  # Step 6: Estimate parameters using the induced family `fpca.den.fam`
   ls_fpca_esti <- fpcaEsti(
-    mat.obsv = list(test_obs_at_t),
+    mat.obsv = test_samples,
     fpca.res = fpca_res,
-    esti.method = c(method),
+    esti.method = method,
     control = list(
       num.k = "AIC",
       max.k = max_k,
@@ -161,23 +266,16 @@ rde_testing_r <- function(test_obs_at_t,
     )
   )
 
-  # 2) Extract estimated parameters
-  est_params <- ls_fpca_esti$res[1, ]
-  est_params <- replace(est_params, is.na(est_params), 0)
+  # Step 7: Construct the density estimates at grid points
+  rde <- par2pdf(
+    fpca_den_fam,
+    fpca_den_fam$fill.par(ls_fpca_esti$res %>% `[<-`(is.na(.), 0)),
+    grid = grid
+  )
 
-  # 3) Construct estimated pdf over the grid
-  est_pdf <- purrr::partial(fpca_den_fam_pdf, par = est_params)
+  # Step 8: Compute the PDF and CDF using the helper function pdfs_cdfs
+  results <- pdfs_cdfs(grid, rde)
 
-  # 4) Consruct estimated cdf from pdf
-  est_cdf <- function(x) {
-    value <- integrate(est_pdf,
-                       lower = lower,
-                       upper = x,
-                       stop.on.error = FALSE)$value
-    return(value)
-  }
-
-
-  # Return
-  return(est_cdf)
+  # Return the nested list returned by pdfs_cdfs
+  return(results)
 }
