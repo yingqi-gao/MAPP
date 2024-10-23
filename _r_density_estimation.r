@@ -1,3 +1,16 @@
+# Load the necessary packages
+if (!requireNamespace("densityFPCA", quietly = TRUE)) {
+  install.packages("densityFPCA")
+}
+library(densityFPCA)
+
+if (!requireNamespace("tidyverse", quietly = TRUE)) {
+  install.packages("tidyverse")
+}
+library(tidyverse)
+
+
+
 #' Title: PDF and CDF Construction Function
 #'
 #' Description:
