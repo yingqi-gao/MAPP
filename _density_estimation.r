@@ -98,7 +98,7 @@ get_cdfs <- function(grid, mat_pdf) {
   for (i in seq_len(nrow(mat_pdf))) {
     # Compute the CDF by cumulatively summing the density estimates.
     cdf_est <- cumsum(mat_pdf[i, ] * c(0, diff(grid)))
-    cdf_est <- cdf_est / tail(cdf_est, n = 1) # normalization
+    cdf_est <- cdf_est / cdf_est[length(cdf_est)] # normalization
     cdf <- approxfun(grid, cdf_est)
 
     # Append to the list
@@ -148,24 +148,37 @@ get_cdfs <- function(grid, mat_pdf) {
 #'
 #' results[[2]](0.32)
 #' pnorm(0.32)
-kde_r <- function(samples, lower, upper, grid_size) {
-  # Step 1: Set up a grid to be used for density estimation and interpolation
+kde_r <- function(samples, lower, upper, grid_size = 1024) {
+  # Step 1: Check if the input type is as expected.
+  if (!is.list(samples) && !is.matrix(samples)) {
+    stop("The input must be list or matrix.")
+  }
+
+  # Step 2: If the input is a matrix, convert it to a list.
+  if (is.matrix(samples)) {
+    samples <- lapply(seq_len(nrow(samples)), function(i) samples[i, ])
+  }
+
+  # Step 3: Set up a grid to be used for density estimation and interpolation
   grid <- seq(lower, upper, length.out = grid_size)
+  n <- length(samples)
+  mat_pdf <- matrix(0, ncol = length(grid), nrow = n)
 
-  # Step 2: Compute the kernel density estimated values at the grid
-  kde <- preSmooth.kde(
-    obsv = samples,
-    grid = grid,
-    kde.opt = list(
-      bw = "sj",
-      kernel = "g",
-      from = lower,
-      to = upper
+  # Step 4: Compute the kernel density estimated values at the grid
+  for (i in seq_len(n)) {
+    kde <- do.call(
+      stats::density,
+      c(list(x = samples[[i]]),
+        kde.opt = list(bw = "sj", kernel = "g", from = lower, to = upper))
     )
-  )
+    mat_pdf[i, ] <- approx(
+      x = kde$x, y = kde$y, xout = grid,
+      rule = 2
+    )$y
+  }
 
-  # Step 3: Compute the CDFs using the helper function get_cdfs
-  results <- get_cdfs(grid, kde)
+  # Step 5: Compute the CDFs using the helper function get_cdfs
+  results <- get_cdfs(grid, mat_pdf)
 
   # Return the list returned by get_cdfs
   return(results)
@@ -193,11 +206,11 @@ kde_r <- function(samples, lower, upper, grid_size) {
 #' @param upper A numeric value specifying the upper bound of the support for
 #'              all densities.
 #' @param grid_size The number of equally spaced points at which the densties
-#'                  are to be estimated.
+#'                  are to be estimated. Defaults to 1024.
 #' @param max_k The maximum number of dimensions the appoximating exponential
-#'              family is expected to have. The default is 10.
+#'              family is expected to have. Defaults to 10.
 #' @param method The method to be used for RDE. Options include "FPCA_BLUP",
-#'               "FPCA_MAP", and "FPCA_MLE". The default is "FPCA_MLE".
+#'               "FPCA_MAP", and "FPCA_MLE". Defaults to "FPCA_MLE".
 #' @return A list of Cumulative Distribution Functions (CDFs), each of which is
 #'         a function to be evaluated at any given point, , with a length equal
 #'         to the number of rows or elements in `test_samples`.
@@ -215,10 +228,9 @@ kde_r <- function(samples, lower, upper, grid_size) {
 #' # Set other parameters
 #' lower <- -1
 #' upper <- 1
-#' grid_size <- 1024
 #'
 #' # Run the function
-#' results <- rde_r(train_samples, test_samples, lower, upper, grid_size)
+#' results <- rde_r(train_samples, test_samples, lower, upper)
 #'
 #' # Test if the results are as expected
 #' results[[sample.int(200, 1)]](0.32)
@@ -226,7 +238,7 @@ rde_r <- function(train_samples,
                   test_samples,
                   lower,
                   upper,
-                  grid_size,
+                  grid_size = 1024,
                   max_k = 10,
                   method = "FPCA_MLE") {
   # Step 1: Set up a grid to be used for density estimation and interpolation
