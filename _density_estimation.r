@@ -99,7 +99,7 @@ get_cdfs <- function(grid, mat_pdf) {
     # Compute the CDF by cumulatively summing the density estimates.
     cdf_est <- cumsum(mat_pdf[i, ] * c(0, diff(grid)))
     cdf_est <- cdf_est / cdf_est[length(cdf_est)] # normalization
-    cdf <- approxfun(grid, cdf_est)
+    cdf <- approxfun(grid, cdf_est, rule = 2)
 
     # Append to the list
     cdfs[[i]] <- cdf

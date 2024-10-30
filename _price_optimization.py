@@ -75,7 +75,9 @@ def get_optimals(cdfs, dist_name, lower, upper, params_list):
 
     # Step 1: Check if the inputs cdfs and params_list have the same length.
     if len(cdfs) != len(params_list):
-        raise ValueError("The parameters cdfs and params_list must have the same length!")
+        raise ValueError(
+            "The parameters cdfs and params_list must have the same length!"
+        )
 
     # Step 2: Get the distribution function from scipy.stats based on dist_name.
     dist_func = getattr(stats, dist_name, None)
@@ -85,12 +87,19 @@ def get_optimals(cdfs, dist_name, lower, upper, params_list):
     for i in range(len(cdfs)):
         # Step 3: Find the optimal price using the estimated CDF and the expected per capita revenue using the true CDF.
         optimal_price = minimize_scalar(
-            partial(get_objective, cdf=cdfs[i]), bounds=(lower, upper), method="bounded"
+            partial(get_objective, cdf=cdfs[i]),
+            bounds=(lower, upper),
+            method="bounded",
+            tol=1e-10,
         ).x
         optimal_neg_revenue = get_objective(
             optimal_price, cdf=partial(dist_func.cdf, **params_list[i])
         )
-        results.append((optimal_price, -1*optimal_neg_revenue))
+        # Check if the optimal revenue is nonzero:
+        if optimal_neg_revenue == 0:
+            print(optimal_price)
+            raise ValueError("Optimal revenue should NOT be zero!")
+        results.append((optimal_price, -1 * optimal_neg_revenue))
 
     return results
 
@@ -136,8 +145,14 @@ def get_ideals(dist_name, lower, upper, params_list):
     for params in params_list:
         cdf = partial(dist_func.cdf, **params)
         ideals = minimize_scalar(
-            partial(get_objective, cdf=cdf), bounds=(lower, upper), method="bounded"
+            partial(get_objective, cdf=cdf),
+            bounds=(lower, upper),
+            method="bounded",
+            tol=1e-20,
         )
+        if ideals.fun == 0:
+            print(ideals.x)
+            raise ValueError("Ideal revenue should NOT be zero!")
         results.append((ideals.x, -ideals.fun))
 
     return results
@@ -162,10 +177,17 @@ if __name__ == "__main__":
     print(rde(train_samples, test_samples, -1, 1, 1024)[randrange(200)](0.32))
     print(stats.truncnorm.cdf(0.32, a=-1, b=1, loc=0, scale=1))
 
-    params_list = [
-        {"a": -1, "b": 1, "loc": uniform(-1, 1), "scale": uniform(0, 2)}
-        for _ in range(50)
-    ]
+    params_list = []
+    for _ in range(50):
+        mu = uniform(-0.5, 0.5)
+        sigma = uniform(0.2, 0.4)
+        params = {
+            "a": (-1 - mu) / sigma,
+            "b": (1 - mu) / sigma,
+            "loc": mu,
+            "scale": sigma,
+        }
+        params_list.append(params)
 
     # test get_optimals
     samples = [stats.truncnorm.rvs(**params, size=(50, 200)) for params in params_list]

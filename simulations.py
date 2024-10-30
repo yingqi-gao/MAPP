@@ -17,36 +17,54 @@ def simulate_value_dists(N, dist_name, lower, upper):
     Returns:
         list of dict: A list where each dictionary contains the parameters of one distribution.
     """
+
+    # Convert bounds to standard normal units
     if dist_name == "truncnorm":
-        params_list = [
-            {
-                "a": lower,
-                "b": upper,
-                "loc": uniform(0, 2*upper),
-                    "scale": uniform(0, 2*upper)
+        params_list = []
+        for _ in range(N):
+            width = upper - lower
+            sigma = uniform(0.15 * width, 0.3 * width)
+            mid = (upper + lower) / 2
+            mu = uniform(mid - sigma, mid + sigma)
+            params = {
+                "a": (lower - mu) / sigma,
+                "b": (upper - mu) / sigma,
+                "loc": mu,
+                "scale": sigma,
             }
-        for _ in range(N)
-        ]
+            params_list.append(params)
 
     elif dist_name == "truncexpon":
         params_list = []
         for _ in range(N):
-            params = {"loc": lower, "scale": uniform(0, 2 * upper)}
-            params["b"] = (upper - lower) / params["scale"]
+            width = upper - lower
+            sigma = uniform(0.15 * width, 0.3 * width)
+            mid = (upper + lower) / 2
+            inverse_rate = uniform(mid - sigma, mid + sigma)
+            b = (upper - lower) / inverse_rate
+            params = {"b": b, "loc": lower, "scale": inverse_rate}
             params_list.append(params)
 
     elif dist_name == "truncpareto":
         params_list = []
         for _ in range(N):
-            params = {"b": uniform(2, upper), "scale": uniform(0, 2 * upper)}
-            params["loc"] = lower - params["scale"]
-            params["c"] = (upper - params["loc"]) / params["scale"]
+            shape = uniform(1.15, 1.3)
+            loc = lower / 10
+            scale = lower - loc
+            params = {
+                "b": shape,
+                "c": (upper - loc) / scale,
+                "loc": loc,
+                "scale": scale,
+            }
             params_list.append(params)
 
     return params_list
 
 
-def simulate_bids(dist_name, lower, upper, max_N = 200, max_n = 200, max_N_train = 200, max_n_train = 200):
+def simulate_bids(
+    dist_name, lower, upper, max_N=200, max_n=200, max_N_train=200, max_n_train=200
+):
     """
     Generate bids (or values) from each value distribution in a specified list.
 
@@ -70,7 +88,7 @@ def simulate_bids(dist_name, lower, upper, max_N = 200, max_n = 200, max_N_train
             - train_bids (numpy.ndarray): A array of max_N_train rows, each of which contains max_n_train bids generated for training the RDE method.
             - ideals (list of tuples): A list of tuples, each of which contains the ideal price and the ideal expected per capita revenue.
     """
-    results = {"dist_name": dist_name, "lower": lower, "upper": upper}
+    results = {"dist_name": dist_name}
 
     # Step 1: Generate two lists of parameters for training and testing, respectively.
     train_params_list = simulate_value_dists(max_N_train, dist_name, lower, upper)
@@ -83,8 +101,18 @@ def simulate_bids(dist_name, lower, upper, max_N = 200, max_n = 200, max_N_train
         raise ValueError(f"Distribution '{dist_name}' not found in scipy.stats")
 
     # Step 3: Generate bids according to the list of parameters.
-    results["bids"] = np.array([dist_func.rvs(**params, size=max_n) for params in params_list])
-    results["train_bids"] = np.array([dist_func.rvs(**params, size=max_n_train) for params in train_params_list])
+    results["bids"] = np.array(
+        [dist_func.rvs(**params, size=max_n) for params in params_list]
+    )
+    # print(results["bids"].min(), results["bids"].max())
+    results["train_bids"] = np.array(
+        [dist_func.rvs(**params, size=max_n_train) for params in train_params_list]
+    )
+    # print(results["train_bids"].min(), results["train_bids"].max())
+
+    # Check if distributions are truncated as expected:
+    # if not np.all((results["bids"] >= lower) & (results["bids"] <= upper)) and not np.all((results["train_bids"] >= lower) & (results["train_bids"] <= upper)):
+    #     raise ValueError("Parameters set for distributions are incorrect!")
 
     # Step 4: Calculate the ideal price and the ideal expected per capita revenue according to the list of parameters.
     results["ideals"] = get_ideals(dist_name, lower, upper, params_list)
@@ -93,7 +121,7 @@ def simulate_bids(dist_name, lower, upper, max_N = 200, max_n = 200, max_N_train
     return results
 
 
-def simulate_regrets(bids_dict, method, N, n, N_train = None, n_train = None):
+def simulate_regrets(bids_dict, method, N, n, N_train=None, n_train=None):
     """
     Simulate N rounds of auctions. Each aution receives n bids. Apply the Max-Price ADPP mechanism with an initial auction using eCDF, KDE, or RDE to estimate the optimal price, and compute the regret.
 
@@ -119,8 +147,8 @@ def simulate_regrets(bids_dict, method, N, n, N_train = None, n_train = None):
 
     # Step 1: Extract the parameters to be used.
     samples = bids_dict["bids"][:N, :n]
-    lower = bids_dict["lower"]
-    upper = bids_dict["upper"]
+    lower = 1
+    upper = 10
 
     # Step 2: Construct the CDFs using the specified method.
     if method == "ecdf":
@@ -135,17 +163,17 @@ def simulate_regrets(bids_dict, method, N, n, N_train = None, n_train = None):
 
     # Step 3: Calculate the optimal prices and the corresponding expected per capita revenues.
     optimals = get_optimals(
-        cdfs,
-        bids_dict["dist_name"],
-        lower,
-        upper,
-        bids_dict["params_list"][:N]
+        cdfs, bids_dict["dist_name"], lower, upper, bids_dict["params_list"][:N]
     )
 
     # Step 4: Calculate the regrets.
-    optimal_revenues = [optimal[1] for optimal in optimals]
-    ideal_revenues = [ideal[1] for ideal in bids_dict["ideals"]]
-    regrets = [ideal_revenues[i] - optimal_revenues[i] for i in range(N)]
+    optimal_revenues = np.hstack([optimal[1] for optimal in optimals])
+    ideal_revenues = np.hstack([ideal[1] for ideal in bids_dict["ideals"]])
+    regrets = np.array([ideal_revenues[i] - optimal_revenues[i] for i in range(N)])
+    # Check if regrets are nonnegative as expected:
+    if not np.all(regrets >= 0):
+        print(regrets[np.where(regrets < 0)])
+        raise ValueError("Regrets cannot be negative!")
 
     # Return the list of regrets.
     return regrets
@@ -168,48 +196,42 @@ if __name__ == "__main__":
     # test simulate_bids
     bids_dict = simulate_bids(
         "truncnorm",
-        lower=1,
-        upper=10,
+        lower=0.9,
+        upper=10.1,
         max_N=200,
         max_n=200,
         max_N_train=200,
         max_n_train=200,
     )
     print(bids_dict["dist_name"])
-    print(bids_dict["lower"])
-    print(bids_dict["upper"])
     print(bids_dict["params_list"][randrange(200)])
     print(bids_dict["bids"][randrange(200)])
     print(bids_dict["train_bids"][randrange(200)])
     print(bids_dict["ideals"][randrange(200)])
     bids_dict = simulate_bids(
         "truncexpon",
-        lower=1,
-        upper=10,
+        lower=0.9,
+        upper=10.1,
         max_N=200,
         max_n=200,
         max_N_train=200,
         max_n_train=200,
     )
     print(bids_dict["dist_name"])
-    print(bids_dict["lower"])
-    print(bids_dict["upper"])
     print(bids_dict["params_list"][randrange(200)])
     print(bids_dict["bids"][randrange(200)])
     print(bids_dict["train_bids"][randrange(200)])
     print(bids_dict["ideals"][randrange(200)])
     bids_dict = simulate_bids(
         "truncpareto",
-        lower=1,
-        upper=10,
+        lower=0.9,
+        upper=10.1,
         max_N=200,
         max_n=200,
         max_N_train=200,
         max_n_train=200,
     )
     print(bids_dict["dist_name"])
-    print(bids_dict["lower"])
-    print(bids_dict["upper"])
     print(bids_dict["params_list"][randrange(200)])
     print(bids_dict["bids"][randrange(200)])
     print(bids_dict["train_bids"][randrange(200)])
@@ -224,9 +246,5 @@ if __name__ == "__main__":
         bids_dict, "kde", N=100, n=10, N_train=None, n_train=None
     )
     print(results[randrange(100)])
-    results = simulate_regrets(
-        bids_dict, "rde", N=100, n=10, N_train=100, n_train=100
-    )
+    results = simulate_regrets(bids_dict, "rde", N=100, n=10, N_train=100, n_train=100)
     print(results[randrange(100)])
-
-
