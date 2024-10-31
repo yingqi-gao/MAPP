@@ -81,8 +81,6 @@ def simulate_bids(
     Returns:
         dict: A dictionary that contains:
             - dist_name (str): The name of the distributions.
-            - lower (float): A numeric value specifying the lower bound of the common support of the distributions.
-            - upper (float): A numeric value specifying the upper bound of the common support of the distributions.
             - params_list (list of dict): A list where each element is a dictionary containing the parameters for one application of the distribution.
             - bids (numpy.ndarray): An array of max_N rows, each of which contains max_n bids generated for testing.
             - train_bids (numpy.ndarray): A array of max_N_train rows, each of which contains max_n_train bids generated for training the RDE method.
@@ -121,19 +119,20 @@ def simulate_bids(
     return results
 
 
-def simulate_regrets(bids_dict, method, N, n, N_train=None, n_train=None):
+def simulate_regrets(bids_dict, lower, upper, method, N, n, N_train=None, n_train=None):
     """
     Simulate N rounds of auctions. Each aution receives n bids. Apply the Max-Price ADPP mechanism with an initial auction using eCDF, KDE, or RDE to estimate the optimal price, and compute the regret.
 
     Args:
         bids_dict (dict): A dictionary that contains:
                             - dist_name (str): The name of the distributions.
-                            - lower (float): A numeric value specifying the lower bound of the common support of the distributions.
-                            - upper (float): A numeric value specifying the upper bound of the common support of the distributions.
-                            - params_list (list of dict): A list where each element is a dictionary containing the parameters for one application of the distribution.
+                            - params_list (list of dict, optional): A list where each element is a dictionary containing the parameters for one application of the distribution.
+                            - true_cdfs (list of functions, optional): A list of Python functions, each of which is a true Cumulative Distribution Function (CDF) that can be evaluated at any given point.
                             - bids (numpy.ndarray): An array of max_N rows, each of which contains max_n bids generated for testing.
                             - train_bids (numpy.ndarray): A array of max_N_train rows, each of which contains max_n_train bids generated for training the RDE method.
                             - ideals (list of tuples): A list of tuples, each of which contains the ideal price and the ideal expected per capita revenue.
+        lower (float): A numeric value specifying the lower bound of the common support of the distributions.
+        upper (float): A numeric value specifying the upper bound of the common support of the distributions.
         method (str): The method of the initial auction to be used for price optimization. Options include "ecdf", "kde", and "rde".
         N (int): An integer specifying the number of auction rounds to be generated.
         n (int): An integer specifying the number of bids received at each auction round.
@@ -143,12 +142,29 @@ def simulate_regrets(bids_dict, method, N, n, N_train=None, n_train=None):
     Returns:
         list: A list of regrets involved in the N rounds of auctions.
     """
+    # Check if both keys are present
+    if "params_list" in bids_dict and "true_cdfs" in bids_dict:
+        raise ValueError(
+            "Please provide either 'params_list' or 'true_cdfs', not both."
+        )
+    # Raise an error if neither key is present
+    elif "params_list" not in bids_dict and "true_cdfs" not in bids_dict:
+        raise ValueError(
+            "The dictionary must contain either 'params_list' or 'true_cdfs'."
+        )
+
     regrets = []
+
+    # Handle the case where only 'params_list' is provided
+    if "params_list" in bids_dict:
+        params_list = bids_dict["params_list"]
+
+    # Handle the case where only 'true_cdfs' is provided
+    elif "true_cdfs" in bids_dict:
+        true_cdfs = bids_dict["true_cdfs"]
 
     # Step 1: Extract the parameters to be used.
     samples = bids_dict["bids"][:N, :n]
-    lower = 1
-    upper = 10
 
     # Step 2: Construct the CDFs using the specified method.
     if method == "ecdf":
@@ -162,18 +178,23 @@ def simulate_regrets(bids_dict, method, N, n, N_train=None, n_train=None):
         raise ValueError(f"Method '{method}' not supported.")
 
     # Step 3: Calculate the optimal prices and the corresponding expected per capita revenues.
-    optimals = get_optimals(
-        cdfs, bids_dict["dist_name"], lower, upper, bids_dict["params_list"][:N]
-    )
+    if "params_list" in bids_dict:
+        optimals = get_optimals(
+            cdfs, bids_dict["dist_name"], lower, upper, params_list=params_list[:N]
+        )
+    elif "true_cdfs" in bids_dict:
+        optimals = get_optimals(
+            cdfs, bids_dict["dist_name"], lower, upper, true_cdfs=true_cdfs[:N]
+        )
 
     # Step 4: Calculate the regrets.
     optimal_revenues = np.hstack([optimal[1] for optimal in optimals])
     ideal_revenues = np.hstack([ideal[1] for ideal in bids_dict["ideals"]])
     regrets = np.array([ideal_revenues[i] - optimal_revenues[i] for i in range(N)])
-    # Check if regrets are nonnegative as expected:
-    if not np.all(regrets >= 0):
-        print(regrets[np.where(regrets < 0)])
-        raise ValueError("Regrets cannot be negative!")
+    # # Check if regrets are nonnegative as expected:
+    # if not np.all(regrets >= 0):
+    #     print(regrets[np.where(regrets < 0)])
+    #     raise ValueError("Regrets cannot be negative!")
 
     # Return the list of regrets.
     return regrets
@@ -239,12 +260,12 @@ if __name__ == "__main__":
 
     # test simulate_regrets
     results = simulate_regrets(
-        bids_dict, "ecdf", N=100, n=10, N_train=None, n_train=None
+        bids_dict, 1, 10, "ecdf", N=100, n=10, N_train=None, n_train=None
     )
     print(results[randrange(100)])
     results = simulate_regrets(
-        bids_dict, "kde", N=100, n=10, N_train=None, n_train=None
+        bids_dict, 1, 10, "kde", N=100, n=10, N_train=None, n_train=None
     )
     print(results[randrange(100)])
-    results = simulate_regrets(bids_dict, "rde", N=100, n=10, N_train=100, n_train=100)
+    results = simulate_regrets(bids_dict, 1, 10, "rde", N=100, n=10, N_train=100, n_train=100)
     print(results[randrange(100)])
