@@ -22,10 +22,8 @@ def simulate_value_dists(N, dist_name, lower, upper):
     if dist_name == "truncnorm":
         params_list = []
         for _ in range(N):
-            width = upper - lower
-            sigma = uniform(0.15 * width, 0.3 * width)
-            mid = (upper + lower) / 2
-            mu = uniform(mid - sigma, mid + sigma)
+            mu = uniform(4.5, 6.5)
+            sigma = uniform(1, 3)
             params = {
                 "a": (lower - mu) / sigma,
                 "b": (upper - mu) / sigma,
@@ -37,12 +35,17 @@ def simulate_value_dists(N, dist_name, lower, upper):
     elif dist_name == "truncexpon":
         params_list = []
         for _ in range(N):
-            width = upper - lower
-            sigma = uniform(0.15 * width, 0.3 * width)
-            mid = (upper + lower) / 2
-            inverse_rate = uniform(mid - sigma, mid + sigma)
+            inverse_rate = uniform(3, 5)
             b = (upper - lower) / inverse_rate
             params = {"b": b, "loc": lower, "scale": inverse_rate}
+            params_list.append(params)
+
+    elif dist_name == "beta":
+        params_list = []
+        for _ in range(N):
+            a = uniform(2, 5)
+            b = uniform(1, a)
+            params = {"a": a, "b": b, "loc": lower, "scale": upper - lower}
             params_list.append(params)
 
     elif dist_name == "truncpareto":
@@ -58,6 +61,9 @@ def simulate_value_dists(N, dist_name, lower, upper):
                 "scale": scale,
             }
             params_list.append(params)
+
+    else: 
+        raise ValueError(f"Distribution '{dist_name}' not supported")
 
     return params_list
 
@@ -209,6 +215,8 @@ if __name__ == "__main__":
     print(params_list[randrange(200)])
     params_list = simulate_value_dists(N=200, dist_name="truncexpon", lower=1, upper=10)
     print(params_list[randrange(200)])
+    params_list = simulate_value_dists(N=200, dist_name="beta", lower=1, upper=10)
+    print(params_list[randrange(200)])
     params_list = simulate_value_dists(
         N=200, dist_name="truncpareto", lower=1, upper=10
     )
@@ -231,6 +239,20 @@ if __name__ == "__main__":
     print(bids_dict["ideals"][randrange(200)])
     bids_dict = simulate_bids(
         "truncexpon",
+        lower=0.9,
+        upper=10.1,
+        max_N=200,
+        max_n=200,
+        max_N_train=200,
+        max_n_train=200,
+    )
+    print(bids_dict["dist_name"])
+    print(bids_dict["params_list"][randrange(200)])
+    print(bids_dict["bids"][randrange(200)])
+    print(bids_dict["train_bids"][randrange(200)])
+    print(bids_dict["ideals"][randrange(200)])
+    bids_dict = simulate_bids(
+        "beta",
         lower=0.9,
         upper=10.1,
         max_N=200,
