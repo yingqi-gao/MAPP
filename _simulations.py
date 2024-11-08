@@ -35,7 +35,7 @@ def simulate_value_dists(N, dist_name, lower, upper):
     elif dist_name == "truncexpon":
         params_list = []
         for _ in range(N):
-            inverse_rate = uniform(3, 5)
+            inverse_rate = uniform(3, 4.5)
             b = (upper - lower) / inverse_rate
             params = {"b": b, "loc": lower, "scale": inverse_rate}
             params_list.append(params)
