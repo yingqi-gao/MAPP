@@ -35,7 +35,7 @@ def simulate_value_dists(N, dist_name, lower, upper):
     elif dist_name == "truncexpon":
         params_list = []
         for _ in range(N):
-            inverse_rate = uniform(3, 4.5)
+            inverse_rate = uniform(2, 5)
             b = (upper - lower) / inverse_rate
             params = {"b": b, "loc": lower, "scale": inverse_rate}
             params_list.append(params)
@@ -43,8 +43,9 @@ def simulate_value_dists(N, dist_name, lower, upper):
     elif dist_name == "beta":
         params_list = []
         for _ in range(N):
-            a = uniform(2, 5)
-            b = uniform(1, a)
+            a = uniform(5, 10)  # Select a larger `a` for left skew
+            target_mean = uniform(4/9, 8/9)  # Mean between 5 and 9
+            b = a * (1 / target_mean - 1)  # Calculate `b` to satisfy mean
             params = {"a": a, "b": b, "loc": lower, "scale": upper - lower}
             params_list.append(params)
 
