@@ -14,7 +14,7 @@ legend_dicts = {
 
 def regrets_plot(regrets, ns, zoomin=(0, 0.1), wlegend=False):
     # Set up 2x2 subplots
-    fig, axes = plt.subplots(2, 2)
+    fig, axes = plt.subplots(2, 2, dpi=600)
 
     # Plot overlayed KDEs in each subplot with custom colors
     t = 0
@@ -60,6 +60,5 @@ def regrets_plot(regrets, ns, zoomin=(0, 0.1), wlegend=False):
             title="Legend",
         )
 
-    # Adjust the layout and display the plot
-    plt.tight_layout()
+    # Display the plot
     plt.show()
