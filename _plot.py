@@ -29,8 +29,14 @@ def regrets_plot(regrets, ns, zoomin=(0, 0.1), wlegend=False):
                     color=legends[0],
                     linestyle=legends[1],
                 )
+
             inset_ax = inset_axes(
-                axes[i, j], width="50%", height="50%", loc="upper right"
+                axes[i, j],
+                width="50%",
+                height="50%",
+                loc="upper right",
+                bbox_to_anchor=(-0.03, -0.03, 1, 1),
+                bbox_transform=axes[i, j].transAxes,
             )
             for k, legends in enumerate(legend_dicts.values()):
                 if k == 2 or k == 4:
@@ -42,8 +48,9 @@ def regrets_plot(regrets, ns, zoomin=(0, 0.1), wlegend=False):
                     linestyle=legends[1],
                 )
             inset_ax.set_xlim(zoomin[0], zoomin[1])
-            axes[i, j].set_title(f"n={ns[t]}")
             inset_ax.set_ylabel("")
+
+            axes[i, j].set_title(f"n={ns[t]}")
             axes[i, j].set_ylabel("")
             t += 1
 
@@ -60,5 +67,6 @@ def regrets_plot(regrets, ns, zoomin=(0, 0.1), wlegend=False):
             title="Legend",
         )
 
-    # Display the plot
+    # Adjust the layour and display the plot
+    plt.tight_layout()
     plt.show()
