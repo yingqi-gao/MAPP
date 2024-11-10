@@ -56,7 +56,7 @@ def regrets_plot(regrets, ns, zoomin=(0, 0.1), wlegend=False):
 
     # Add shared x and y labels for the whole figure
     fig.text(0.5, 0, "Regret", ha="center", va="center", fontsize=14)
-    fig.text(0, 0.5, "Frequency", ha="center", va="center", rotation="vertical", fontsize=14)
+    fig.text(0, 0.5, "Density", ha="center", va="center", rotation="vertical", fontsize=14)
 
     if wlegend is True:
         # Create a shared legend for the entire figure
