@@ -1,6 +1,9 @@
 # Load the necessary packages
+if (!requireNamespace("devtools", quietly = TRUE)) {
+  install.packages("devtools")
+}
 if (!requireNamespace("densityFPCA", quietly = TRUE)) {
-  install.packages("densityFPCA")
+  devtools::install_github("jiamingqiu/densityFPCA")
 }
 library(densityFPCA)
 

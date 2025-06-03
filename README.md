@@ -19,17 +19,48 @@ We propose a two-stage mechanism for selling machine learning datasets that comb
 
 ---
 
-## 🔧 Installation
+## 🚀 Getting Started
 
-We recommend using a Python virtual environment:
+This project requires both a Python environment (managed via `conda`) and an R environment (version 4.2) with access to the `densityFPCA` package.
 
+### 🔧 1. Clone the Repository and Set Up the Python Environment
 
 ```bash
 git clone https://github.com/yingqi-gao/MAPP.git
 cd MAPP
+
+# Create the conda environment
 conda env create -f environment.yml
+
+# Activate the environment
 conda activate mapp
+
+# (Optional) Register as a Jupyter kernel
+python -m ipykernel install --user --name mapp --display-name "Python (mapp)"
 ```
+
+### 🧬 2. Set Up the R Environment
+
+This project uses R 4.2. On macOS with the CRAN binary, you may need to set the R_HOME environment variable so Python (via rpy2) can locate the correct R installation.
+
+```bash
+export R_HOME="/Library/Frameworks/R.framework/Versions/4.2-arm64/Resources"
+```
+
+### 📦 3. Install Required R Packages
+
+Open R 4.2 in your terminal and run the following:
+
+```r
+install.packages("devtools")  # if not already installed
+devtools::install_github("jiamingqiu/densityFPCA")
+install.packages("tidyverse") # if not already installed
+```
+
+📌 For details, see the densityFPCA GitHub repo.
+
+💡 If compilation errors occur, ensure that your C/C++ toolchain (e.g., Homebrew gcc-15) is installed and configured. You may need to edit your ~/.R/Makevars file to specify the correct compiler paths.
+
 
 ## 📊 Reproducing Results
 

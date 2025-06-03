@@ -1,13 +1,14 @@
 import os
-from rpy2.robjects import numpy2ri
+os.environ["R_HOME"] = "/Library/Frameworks/R.framework/Versions/4.2-arm64/Resources"
+
 import rpy2.robjects as ro
+print(ro.r("R.version.string"))
+
+from rpy2.robjects import numpy2ri
 from functools import partial
 import scipy.stats as stats
 from scipy.optimize import minimize_scalar
 
-
-# Set the R_HOME address
-os.environ["R_HOME"] = "/Library/Frameworks/R.framework/Resources"
 
 # Activate automatic conversion between R and Python (NumPy)
 numpy2ri.activate()
