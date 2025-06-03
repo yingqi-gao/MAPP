@@ -57,7 +57,7 @@ devtools::install_github("jiamingqiu/densityFPCA")
 install.packages("tidyverse") # if not already installed
 ```
 
-📌 For details, see the densityFPCA GitHub repo.
+📌 For details, see the [densityFPCA](https://github.com/jiamingqiu/densityFPCA) GitHub repo.
 
 💡 If compilation errors occur, ensure that your C/C++ toolchain (e.g., Homebrew gcc-15) is installed and configured. You may need to edit your ~/.R/Makevars file to specify the correct compiler paths.
 
