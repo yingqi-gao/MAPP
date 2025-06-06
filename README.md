@@ -4,7 +4,6 @@ This repository contains the code and experiments for our paper:
 
 **📄 [Learn then Decide: A Learning Approach for Designing Data Marketplaces](https://arxiv.org/abs/2503.10773)**  
 Yingqi Gao, Jin Zhou, Hua Zhou, Yong Chen, Xiaowu Dai\
-*Submitted to Journal of the American Statistical Association, 2025*
 
 ---
 
