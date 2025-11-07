@@ -1,15 +1,57 @@
-# Ignore Python cache files
+# -----------------------------
+# Python
+# -----------------------------
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 
-# Ignore macOS system files
+# Virtual environments
+.venv/
+venv/
+.env/
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# -----------------------------
+# Conda
+# -----------------------------
+.conda/
+
+# -----------------------------
+# R
+# -----------------------------
+.Rhistory
+.RData
+.Rproj.user/
+
+# -----------------------------
+# macOS system files
+# -----------------------------
 .DS_Store
 
-# Ignore csf files
-*.csv
+# -----------------------------
+# Data & outputs
+# -----------------------------
+# Exclude workspace data and models (large cached files)
+workspace/*/data/
+workspace/*/rde_models/
+workspace/*/myerson_net_models/
+workspace/*/regrets/
 
-# Ignore pickle files
-*.pkl
+# But include plots (figures for paper)
+!workspace/*/plots/
 
-# Ignore PNG image files
-*.png
+# -----------------------------
+# Logs
+# -----------------------------
+*.log
+
+# -----------------------------
+# IDE / Editor configs (optional)
+# -----------------------------
+.vscode/
+.idea/
+.claude/
+CLAUDE.md

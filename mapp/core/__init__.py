@@ -1,0 +1,1 @@
+"""Core auction classes and data structures"""

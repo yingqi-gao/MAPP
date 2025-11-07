@@ -1,97 +1,282 @@
-# 📄 Learning to Price ML Datasets via Posted Price and Auction
+# MAPP: Maximum Auction-to-Posted Price
 
 This repository contains the code and experiments for our paper:
 
-**📄 [Learn then Decide: A Learning Approach for Designing Data Marketplaces](https://arxiv.org/abs/2503.10773)**  
-Yingqi Gao, Jin Zhou, Hua Zhou, Yong Chen, Xiaowu Dai\
+**[Learn then Decide: A Learning Approach for Designing Data Marketplaces](https://arxiv.org/abs/2503.10773)**
+Yingqi Gao, Jin Zhou, Hua Zhou, Yong Chen, Xiaowu Dai
 *Submitted to Journal of the American Statistical Association, 2025*
 
 ---
 
-## 🧾 Overview
+## Overview
 
-We propose a two-stage mechanism for selling machine learning datasets that combines posted pricing with auctions. This repo includes:
+We propose the **Maximum Auction-to-Posted Price (MAPP)** mechanism, a two-stage approach for pricing in data marketplaces:
 
-- Implementation of all mechanisms described in the paper
-- Scripts to simulate multiple settings
-- Tools for evaluating regret, revenue, and fairness
-- Reproduction of all tables and figures in the main text and appendix
+1. **Learning Stage (Auction):** Collect bids from initial buyers to learn the value distribution
+2. **Decision Stage (Posted Price):** Use learned distribution to set optimal posted prices for subsequent sales
+
+**Key Properties:**
+- ✅ Incentive Compatible (leave-one-out pricing ensures truthful bidding)
+- ✅ Individually Rational (buyers only pay if value ≥ price)
+- ✅ Revenue Optimal (maximizes seller revenue given learned distribution)
+
+**Pricing Methods Evaluated:**
+- **ECDF**: Empirical CDF (non-parametric baseline)
+- **KDE**: Kernel Density Estimation
+- **RDE**: Repeated Density Estimation (FPCA-based, proposed in paper)
+- **Myerson**: Theoretical benchmark (assumes true distribution known)
+- **MyersonNet**: Deep learning-based optimal auction mechanism
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
-This project requires both a Python environment (managed via `conda`) and an R environment (version 4.2) with access to the `densityFPCA` package.
+### Requirements
 
-### 🔧 1. Clone the Repository and Set Up the Python Environment
+- **Python 3.11** (for reproducibility)
+- **R 4.0+** (4.2+ recommended)
+- **macOS/Linux/Windows** (macOS requires Xcode command line tools)
+
+### One-Command Setup
 
 ```bash
 git clone https://github.com/yingqi-gao/MAPP.git
 cd MAPP
-
-# Create the conda environment
-conda env create -f environment.yml
-
-# Activate the environment
-conda activate mapp
-
-# (Optional) Register as a Jupyter kernel
-python -m ipykernel install --user --name mapp --display-name "Python (mapp)"
+./setup.sh
 ```
 
-### 🧬 2. Set Up the R Environment
+The setup script will:
+- ✅ Check R installation (≥4.0, recommends ≥4.2)
+- ✅ Install R packages: `fdapace` (CRAN) + [`densityFPCA`](https://github.com/jiamingqiu/densityFPCA) (GitHub)
+- ✅ Create Python virtual environment (`venv/`)
+- ✅ Install all Python dependencies with pinned versions
+- ✅ Test Python-R integration
 
-This project uses R 4.2. On macOS with the CRAN binary, you may need to set the R_HOME environment variable so Python (via rpy2) can locate the correct R installation.
+**For manual installation or troubleshooting**, see the [Installation Guide](#detailed-installation) below.
+
+### Activate Environment
 
 ```bash
-export R_HOME="/Library/Frameworks/R.framework/Versions/4.2-arm64/Resources"
+source venv/bin/activate
 ```
-
-### 📦 3. Install Required R Packages
-
-Open R 4.2 in your terminal and run the following:
-
-```r
-install.packages("devtools")  # if not already installed
-devtools::install_github("jiamingqiu/densityFPCA")
-install.packages("tidyverse") # if not already installed
-```
-
-📌 For details, see the densityFPCA GitHub repo.
-
-💡 If compilation errors occur, ensure that your C/C++ toolchain (e.g., Homebrew gcc-15) is installed and configured. You may need to edit your ~/.R/Makevars file to specify the correct compiler paths.
-
-
-## 📊 Reproducing Results
-
-To reproduce the figures and tables from the paper:
-
-### ✅ Simulated Data
-
-- Open and run [`simulations.ipynb`](simulations.ipynb)  
-  This notebook generates all synthetic datasets, runs the pricing mechanisms, and produces the figures and tables corresponding to our simulation studies.
-
-### ✅ Real Data
-
-- Open and run [`real.ipynb`](real.ipynb)  
-  This notebook reproduces the results from our real-world dataset experiments.
 
 ---
 
-### 🧠 Code Components Overview
+## Reproducing Paper Results
 
-Our method integrates both Python and R components. The core modules include:
+### Simulated Data Experiments
 
-- [`_density_estimation.r`](./_density_estimation.r)  
-  Adapts the repeated density estimation method from [Qiu et al. (densityFPCA)](https://github.com/jiamingqiu/densityFPCA) in R.
+Open and run the notebook:
+```bash
+jupyter notebook notebooks/simulated_data.ipynb
+```
 
-- [`_price_optimization.py`](./_price_optimization.py)  
-  Implements the price optimization routine based on estimated densities.
+This notebook:
+- Generates synthetic auction data from 4 distribution families (truncnorm, truncexpon, beta, truncpareto)
+- Trains RDE and MyersonNet models on separate training data
+- Evaluates all pricing methods across different data sparsity levels
+- Produces k-fold sensitivity plots and regret histograms
 
-- [`_simulations.py`](./_simulations.py)  
-  Contains utilities for generating synthetic data under various scenarios.
+**Experimental Design:**
+- 4 distributions × 4 bid counts (10, 50, 100, 200) × 3 k-folds (2, 5, 10) = 48 experiments
+- 1000 runs per experiment for statistical significance
+- Automatic caching (rerun uses cached data/models)
 
-- [`_plot.py`](./_plot.py)  
-  Provides helper functions for visualizing results and generating figures.
+### Real Data Experiments
 
-These components are used directly within the two Jupyter notebooks and require no separate configuration.
+Open and run the notebook:
+```bash
+jupyter notebook notebooks/real_data.ipynb
+```
+
+Applies MAPP to real-world FCC spectrum auction data.
+
+---
+
+## Repository Structure
+
+The code is organized into a Python package (`mapp/`) and Jupyter notebooks (`notebooks/`):
+
+- **`mapp/core/`** - Core auction logic and experiment runner
+- **`mapp/data/`** - Synthetic data generation
+- **`mapp/methods/`** - All pricing methods (ECDF, KDE, RDE, Myerson, MyersonNet)
+- **`mapp/experiments/`** - Experiment orchestration with caching
+- **`mapp/utils/`** - Plotting, result loading, global configuration
+- **`notebooks/`** - Jupyter notebooks for reproducing paper results
+
+Browse the full structure on [GitHub](https://github.com/yingqi-gao/MAPP).
+
+---
+
+## Key Concepts
+
+- **CDF (Cumulative Distribution Function):** Characterizes buyer value distribution, used to compute optimal price
+- **Leave-One-Group-Out (k-fold):** Ensures incentive compatibility - each buyer's bid is excluded when calculating their price
+- **Regret:** `Ideal Revenue - Actual Revenue` (lower is better)
+  - **Ideal Revenue:** Revenue using oracle price with true CDF
+  - **Actual Revenue:** Revenue using price from estimated CDF
+- **Training Data:** Separate dense auction data (200×200) used to train RDE and MyersonNet models
+- **Test Data:** Sparser auction data (10-200 bids) used to evaluate methods
+
+---
+
+## Configuration
+
+All global settings are in `mapp/utils/constants.py`:
+
+```python
+# Value bounds for data generation
+VALUE_LOWER_BOUND = 1.0
+VALUE_UPPER_BOUND = 10.0
+
+# Optimization bounds for pricing methods
+OPTIMIZATION_LOWER_BOUND = 1.0
+OPTIMIZATION_UPPER_BOUND = 10.0
+```
+
+**Important:** All experiments use consistent bounds. Modify `constants.py` to change bounds globally.
+
+---
+
+## Caching and Reproducibility
+
+All expensive operations are automatically cached:
+
+| Data Type | Location | Naming Pattern |
+|-----------|----------|----------------|
+| Test Data | `workspace/{dist}/data/` | `{dist}_a{auctions}_b{bids}_r{runs}_s{seed}_test.json` |
+| Train Data | `workspace/{dist}/data/` | `{dist}_a{auctions}_b{bids}_s{seed}_train.json` |
+| RDE Models | `workspace/{dist}/rde_models/` | `{dist}_N{N_train}_n{n_train}_l{lower}_u{upper}.pkl` |
+| MyersonNet | `workspace/{dist}/myerson_net_models/` | `{dist}_N{N}_n{n}_agents{a}_epochs{e}.pt` |
+| Results | `workspace/{dist}/regrets/` | `{dist}_b{bids}_k{k}_{method}.pkl` |
+
+**Reproducibility:**
+- `requirements.txt` - Pinned dependencies for exact version control
+- All random seeds fixed in notebooks
+- Cached data ensures identical results across runs
+
+To regenerate from scratch, delete `workspace/` and rerun notebooks.
+
+---
+
+## Detailed Installation
+
+### Step 1: Install R
+
+**macOS:**
+```bash
+brew install r  # or download from https://cran.r-project.org/bin/macosx/
+```
+
+**Ubuntu:**
+```bash
+sudo apt-get install r-base r-base-dev
+```
+
+**Windows:**
+Download from https://cran.r-project.org/bin/windows/base/
+
+**Verify installation:**
+```bash
+R --version  # Should show 4.0+ (4.2+ recommended)
+```
+
+### Step 2: Install R Packages
+
+```r
+# In R console:
+install.packages("fdapace")
+install.packages("remotes")
+remotes::install_github("jiamingqiu/densityFPCA")
+```
+
+**macOS Troubleshooting:** If compilation fails, install gfortran:
+```bash
+brew install gcc
+```
+
+### Step 3: Set Up Python Environment
+
+```bash
+# Create virtual environment with Python 3.11
+python3.11 -m venv venv
+
+# Activate environment
+source venv/bin/activate  # macOS/Linux
+# or
+venv\Scripts\activate     # Windows
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### Step 4: Configure R_HOME
+
+**macOS:**
+```bash
+export R_HOME="/Library/Frameworks/R.framework/Resources"
+# Add to venv/bin/activate for persistence
+echo 'export R_HOME="/Library/Frameworks/R.framework/Resources"' >> venv/bin/activate
+```
+
+**Linux:**
+```bash
+export R_HOME=$(R RHOME)
+```
+
+### Step 5: Test Installation
+
+```bash
+# Test Python-R bridge
+python mapp/methods/cdf_based/estimation/rbridge.py
+
+# Test MyersonNet
+python -c "import torch; print(f'PyTorch {torch.__version__} installed')"
+```
+
+---
+
+## Dependencies
+
+### Python (requirements.txt)
+
+- **Core:** numpy, pandas, scipy
+- **Visualization:** matplotlib, seaborn
+- **ML:** scikit-learn, torch (for MyersonNet)
+- **Notebook:** jupyter, ipykernel
+- **R Integration:** rpy2
+
+### R
+
+- **fdapace** (CRAN): Functional principal component analysis
+- **[densityFPCA](https://github.com/jiamingqiu/densityFPCA)**: Repeated density estimation
+
+---
+
+## Citation
+
+If you use this code in your research, please cite:
+
+```bibtex
+@article{gao2025learn,
+  title={Learn then Decide: A Learning Approach for Designing Data Marketplaces},
+  author={Gao, Yingqi and Zhou, Jin and Zhou, Hua and Chen, Yong and Dai, Xiaowu},
+  journal={arXiv preprint arXiv:2503.10773},
+  year={2025}
+}
+```
+
+---
+
+## Contact
+
+For questions or issues:
+- Open a GitHub issue
+- Contact: yqg36@g.ucla.edu
+
+---
+
+## Acknowledgments
+
+- **MyersonNet** implementation adapted from ["Optimal Auctions through Deep Learning" (Dütting et al., 2019)](https://arxiv.org/abs/1706.03459)
+- **[densityFPCA](https://github.com/jiamingqiu/densityFPCA)** package by Jiaming Qiu
