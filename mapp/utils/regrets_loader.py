@@ -130,6 +130,25 @@ def load_results(
                         # MyersonNet file: only include if MyersonNet was requested
                         if not has_myersonnet:
                             continue
+
+                        # IMPORTANT: Only load MyersonNet files with correct agent count
+                        # Calculate expected group_size for this (bids, k) combination
+                        if file_bids is not None and file_k is not None and file_k > 0:
+                            expected_group_size = file_bids // file_k
+
+                            # Extract agent count from filename (e.g., "myersonnet_25a" → 25)
+                            if file_method.endswith('a') and '_' in file_method:
+                                try:
+                                    agent_str = file_method.split('_')[-1][:-1]  # Remove 'a' suffix
+                                    actual_agents = int(agent_str)
+
+                                    # Skip if agent count doesn't match group size
+                                    if actual_agents != expected_group_size:
+                                        continue
+                                except (ValueError, IndexError):
+                                    # If we can't parse agent count, include the file
+                                    # (backwards compatibility for old naming schemes)
+                                    pass
                     else:
                         # Non-MyersonNet file: check against method slugs
                         if file_method not in method_slugs_set:

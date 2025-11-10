@@ -138,6 +138,9 @@ def plot_kfold_sensitivity(
             ax = axes_flat[idx]
 
             # Load results for this combination
+            # NOTE: load_results() automatically filters MyersonNet files to only load
+            # those with agent count matching group_size (bids/k). This ensures each
+            # (bids, k) combination loads only the correct MyersonNet model.
             results = load_results(
                 project_root=project_root,
                 dist_name=dist_name,
@@ -195,27 +198,62 @@ def plot_kfold_sensitivity(
                 color, linestyle = _get_style(method, palette_iter)
                 marker = _get_marker(method)
 
-                # Plot line connecting means
-                ax.plot(
-                    k_vals, means,
-                    color=color, linestyle=linestyle, linewidth=2.5,
-                    zorder=2, alpha=0.7
-                )
+                # Check if MyersonNet has invalid scenarios (group_size < 2)
+                # For MyersonNet, skip error bars where group_size < 2
+                is_myersonnet = method.startswith("MyersonNet")
+                if is_myersonnet:
+                    # Filter out k values where group_size < 2
+                    valid_indices = [i for i, k in enumerate(k_vals) if n_bids // k >= 2]
 
-                # Plot vertical error bars with markers
-                err = ax.errorbar(
-                    k_vals, means, yerr=stds,
-                    label=method, color=color, linestyle='none',
-                    marker=marker, markersize=10,
-                    markeredgewidth=2, markeredgecolor='white',
-                    capsize=5, capthick=2, elinewidth=2,
-                    zorder=3, alpha=0.9
-                )
+                    if valid_indices:
+                        valid_k = k_vals[valid_indices]
+                        valid_means = means[valid_indices]
+                        valid_stds = stds[valid_indices]
 
-                # Store for shared legend (only once)
-                if method not in all_method_handles:
-                    all_method_handles[method] = err
-                    all_method_labels[method] = method
+                        # Plot line for valid points only
+                        ax.plot(
+                            valid_k, valid_means,
+                            color=color, linestyle=linestyle, linewidth=2.5,
+                            zorder=2, alpha=0.7
+                        )
+
+                        # Plot error bars with markers for valid points
+                        err = ax.errorbar(
+                            valid_k, valid_means, yerr=valid_stds,
+                            label=method, color=color, linestyle='none',
+                            marker=marker, markersize=10,
+                            markeredgewidth=2, markeredgecolor='white',
+                            capsize=5, capthick=2, elinewidth=2,
+                            zorder=3, alpha=0.9
+                        )
+
+                        # Store for shared legend (only once)
+                        if method not in all_method_handles:
+                            all_method_handles[method] = err
+                            all_method_labels[method] = method
+                else:
+                    # For non-MyersonNet methods, plot normally
+                    # Plot line connecting means
+                    ax.plot(
+                        k_vals, means,
+                        color=color, linestyle=linestyle, linewidth=2.5,
+                        zorder=2, alpha=0.7
+                    )
+
+                    # Plot vertical error bars with markers
+                    err = ax.errorbar(
+                        k_vals, means, yerr=stds,
+                        label=method, color=color, linestyle='none',
+                        marker=marker, markersize=10,
+                        markeredgewidth=2, markeredgecolor='white',
+                        capsize=5, capthick=2, elinewidth=2,
+                        zorder=3, alpha=0.9
+                    )
+
+                    # Store for shared legend (only once)
+                    if method not in all_method_handles:
+                        all_method_handles[method] = err
+                        all_method_labels[method] = method
 
             # Formatting
             ax.set_xlabel('K-Fold Value', fontsize=12, fontweight='bold')
@@ -352,6 +390,9 @@ def plot_regret_histograms(
             ax = axes_flat[idx]
 
             # Load results for this combination
+            # NOTE: load_results() automatically filters MyersonNet files to only load
+            # those with agent count matching group_size (bids/k). This ensures each
+            # (bids, k) combination loads only the correct MyersonNet model.
             results = load_results(
                 project_root=project_root,
                 dist_name=dist_name,
@@ -384,7 +425,7 @@ def plot_regret_histograms(
                 color, _ = _get_style(method, palette_iter)
 
                 # Plot histogram
-                n, bins_edges, patches = ax.hist(
+                _, _, patches = ax.hist(
                     all_regrets, bins=bins, alpha=alpha, color=color,
                     label=f"{method}",
                     edgecolor='white', linewidth=0.5
