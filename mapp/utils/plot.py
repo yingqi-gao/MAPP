@@ -126,7 +126,7 @@ def plot_kfold_sensitivity(
         dist_display = _DIST_NAMES.get(dist_name.lower(), dist_name)
         fig.suptitle(
             f'{dist_display}: K-Fold Sensitivity Analysis',
-            fontsize=20, fontweight='bold', y=0.995
+            fontsize=28, fontweight='bold', y=0.995
         )
 
         # Track all methods for shared legend
@@ -256,9 +256,9 @@ def plot_kfold_sensitivity(
                         all_method_labels[method] = method
 
             # Formatting
-            ax.set_xlabel('K-Fold Value', fontsize=12, fontweight='bold')
-            ax.set_ylabel('Mean Regret', fontsize=12, fontweight='bold')
-            ax.set_title(f'{n_bids} Bids per Auction', fontsize=14, fontweight='bold', pad=10)
+            ax.set_xlabel('K-Fold Value', fontsize=22)
+            ax.set_ylabel('Mean Regret', fontsize=22)
+            ax.set_title(f'{n_bids} Bids per Auction', fontsize=24, fontweight='bold', pad=10)
 
             # Better grid
             ax.grid(True, alpha=0.3, linestyle='--', linewidth=0.8, zorder=0)
@@ -274,7 +274,7 @@ def plot_kfold_sensitivity(
             if method_data:
                 all_k = sorted(set(k for data in method_data.values() for k in data['k']))
                 ax.set_xticks(all_k)
-                ax.tick_params(axis='both', labelsize=10, width=1.5, length=6)
+                ax.tick_params(axis='both', labelsize=20, width=1.5, length=6)
 
         # Add shared legend on the right side
         if all_method_handles:
@@ -285,7 +285,7 @@ def plot_kfold_sensitivity(
 
             fig.legend(
                 handles, labels,
-                fontsize=12, loc='center left', bbox_to_anchor=(0.92, 0.5),
+                fontsize=22, loc='center left', bbox_to_anchor=(0.92, 0.5),
                 frameon=True, fancybox=True, shadow=True, framealpha=0.95,
                 edgecolor='gray', ncol=1
             )
@@ -378,7 +378,7 @@ def plot_regret_histograms(
         dist_display = _DIST_NAMES.get(dist_name.lower(), dist_name)
         fig.suptitle(
             f'{dist_display}: Regret Distribution Comparison',
-            fontsize=20, fontweight='bold', y=0.995
+            fontsize=28, fontweight='bold', y=0.995
         )
 
         # Track all methods for shared legend
@@ -437,9 +437,9 @@ def plot_regret_histograms(
                     all_method_labels[method] = method
 
             # Formatting
-            ax.set_xlabel('Regret', fontsize=12, fontweight='bold')
-            ax.set_ylabel('Frequency', fontsize=12, fontweight='bold')
-            ax.set_title(f'{n_bids} Bids per Auction', fontsize=14, fontweight='bold', pad=10)
+            ax.set_xlabel('Regret', fontsize=22)
+            ax.set_ylabel('Frequency', fontsize=22)
+            ax.set_title(f'{n_bids} Bids per Auction', fontsize=24, fontweight='bold', pad=10)
 
             # Grid
             ax.grid(True, alpha=0.3, linestyle='--', linewidth=0.8, zorder=0, axis='y')
@@ -451,7 +451,7 @@ def plot_regret_histograms(
             ax.spines['left'].set_linewidth(1.5)
             ax.spines['bottom'].set_linewidth(1.5)
 
-            ax.tick_params(axis='both', labelsize=10, width=1.5, length=6)
+            ax.tick_params(axis='both', labelsize=14, width=1.5, length=6)
 
         # Add shared legend on the right side
         if all_method_handles:
@@ -462,7 +462,7 @@ def plot_regret_histograms(
 
             fig.legend(
                 handles, labels,
-                fontsize=12, loc='center left', bbox_to_anchor=(0.92, 0.5),
+                fontsize=22, loc='center left', bbox_to_anchor=(0.92, 0.5),
                 frameon=True, fancybox=True, shadow=True, framealpha=0.95,
                 edgecolor='gray', ncol=1
             )
