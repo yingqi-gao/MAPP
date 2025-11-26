@@ -451,7 +451,7 @@ def plot_regret_histograms(
             ax.spines['left'].set_linewidth(1.5)
             ax.spines['bottom'].set_linewidth(1.5)
 
-            ax.tick_params(axis='both', labelsize=14, width=1.5, length=6)
+            ax.tick_params(axis='both', labelsize=20, width=1.5, length=6)
 
         # Add shared legend on the right side
         if all_method_handles:

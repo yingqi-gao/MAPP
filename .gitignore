@@ -43,9 +43,6 @@ workspace/*/regrets/
 # But include plots (figures for paper)
 !workspace/*/plots/
 
-# Large raw data files (>100MB GitHub limit)
-mapp/data/auction97.csv
-
 # -----------------------------
 # Logs
 # -----------------------------
